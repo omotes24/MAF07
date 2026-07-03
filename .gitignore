@@ -1,0 +1,17 @@
+.DS_Store
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.py[cod]
+.venv/
+dist/
+build/
+*.egg-info/
+data/
+cache/
+features/
+results/**/*.tmp
+results/**/*.lock
+results/**
+!results/.gitkeep
+wandb/

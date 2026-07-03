@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "maf07"
+version = "0.1.0"
+description = "MAF07 wild-cat closed classification and OOD detection experiments"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.24",
+  "pandas>=2.0",
+  "scikit-learn>=1.3",
+  "scipy>=1.10",
+  "pillow>=10.0",
+  "pyyaml>=6.0",
+  "tqdm>=4.66",
+  "matplotlib>=3.7",
+  "seaborn>=0.13",
+  "pyarrow>=14.0",
+  "torch>=2.1",
+  "torchvision>=0.16",
+  "timm>=0.9",
+  "transformers>=4.40",
+  "open_clip_torch>=2.24",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.5",
+]
+
+[project.scripts]
+maf07 = "maf07.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+

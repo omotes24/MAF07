@@ -1,0 +1,93 @@
+tier0:
+  - name: dinov2_vitb14
+    family: timm
+    model_name: vit_base_patch14_dinov2.lvd142m
+    image_size: 518
+    feature_dim: null
+  - name: dinov2_vitl14
+    family: timm
+    model_name: vit_large_patch14_dinov2.lvd142m
+    image_size: 518
+    feature_dim: null
+  - name: openai_clip_vitb16
+    family: open_clip
+    model_name: ViT-B-16
+    checkpoint_name: openai
+    image_size: 224
+    feature_dim: null
+  - name: openai_clip_vitl14
+    family: open_clip
+    model_name: ViT-L-14
+    checkpoint_name: openai
+    image_size: 224
+    feature_dim: null
+  - name: bioclip
+    family: open_clip
+    model_name: hf-hub:imageomics/bioclip
+    checkpoint_name: null
+    image_size: 224
+    feature_dim: null
+  - name: imagenet_vitb16
+    family: timm
+    model_name: vit_base_patch16_224.augreg_in21k_ft_in1k
+    image_size: 224
+    feature_dim: null
+  - name: convnext_base
+    family: timm
+    model_name: convnext_base.fb_in22k_ft_in1k
+    image_size: 224
+    feature_dim: null
+  - name: swin_base
+    family: timm
+    model_name: swin_base_patch4_window7_224.ms_in22k_ft_in1k
+    image_size: 224
+    feature_dim: null
+  - name: resnet50
+    family: timm
+    model_name: resnet50.a1_in1k
+    image_size: 224
+    feature_dim: null
+tier1:
+  - name: dinov2_vits14
+    family: timm
+    model_name: vit_small_patch14_dinov2.lvd142m
+    image_size: 518
+  - name: openclip_vitb16
+    family: open_clip
+    model_name: ViT-B-16
+    checkpoint_name: laion2b_s34b_b88k
+    image_size: 224
+  - name: siglip_vitb16
+    family: timm
+    model_name: vit_base_patch16_siglip_224.webli
+    image_size: 224
+  - name: deit_base
+    family: timm
+    model_name: deit_base_patch16_224.fb_in1k
+    image_size: 224
+  - name: convnext_tiny
+    family: timm
+    model_name: convnext_tiny.fb_in22k_ft_in1k
+    image_size: 224
+  - name: swin_tiny
+    family: timm
+    model_name: swin_tiny_patch4_window7_224.ms_in1k
+    image_size: 224
+  - name: resnet101
+    family: timm
+    model_name: resnet101.a1h_in1k
+    image_size: 224
+  - name: efficientnetv2_s
+    family: timm
+    model_name: tf_efficientnetv2_s.in21k_ft_in1k
+    image_size: 384
+tier2:
+  - name: convnext_large
+    family: timm
+    model_name: convnext_large.fb_in22k_ft_in1k
+    image_size: 224
+  - name: swin_large
+    family: timm
+    model_name: swin_large_patch4_window7_224.ms_in22k_ft_in1k
+    image_size: 224
+

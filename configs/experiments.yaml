@@ -1,0 +1,22 @@
+seeds: [0, 1, 2]
+id_sizes: [2, 3, 4, 5, 6, 7]
+protocols:
+  - fair
+  - oracle
+default_backbone_tiers:
+  - tier0
+feature_cache_dir: results/features
+job_dir: results/coverage
+closed_output: results/closed/results.csv
+fair_scores_output: results/ood/fair/all_scores.parquet
+fair_summary_output: results/ood/fair/summary_by_setting.csv
+oracle_summary_output: results/ood/oracle/oracle_summary.csv
+ablation_output: results/ablation/maf_ablation.csv
+bootstrap:
+  n_boot: 2000
+  confidence: 0.95
+runtime:
+  batch_size: 64
+  num_workers: 8
+  device: cuda
+

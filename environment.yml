@@ -1,0 +1,28 @@
+name: maf07
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - numpy
+  - pandas
+  - scikit-learn
+  - scipy
+  - pillow
+  - pyyaml
+  - tqdm
+  - matplotlib
+  - seaborn
+  - pyarrow
+  - pytorch
+  - torchvision
+  - pytorch-cuda=12.1
+  - pip:
+      - timm>=0.9
+      - transformers>=4.40
+      - open_clip_torch>=2.24
+      - pytest>=8.0
+      - ruff>=0.5
+

@@ -1,0 +1,29 @@
+dataset_root: /home/omote/CAT
+manifest_path: results/manifest.csv
+split_dir: results/splits
+target_per_class: 15000
+classes:
+  - cheetah
+  - jaguar
+  - leopard
+  - lion
+  - ocelot
+  - puma
+  - serval
+  - tiger
+image_extensions:
+  - .jpg
+  - .jpeg
+  - .png
+  - .webp
+  - .bmp
+split:
+  seeds: [0, 1, 2]
+  train: 4
+  val: 1
+  test: 1
+duplicate:
+  use_sha256: true
+  use_phash: false
+  phash_size: 8
+

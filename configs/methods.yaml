@@ -1,0 +1,112 @@
+closed_methods:
+  - linear_probe
+  - mlp_head
+  - cosine_classifier
+  - nearest_class_mean
+  - clip_zero_shot
+  - clip_prompt_ensemble
+ood_methods:
+  fair:
+    - maf
+    - msp
+    - entropy
+    - energy
+    - maxlogit
+    - mahalanobis
+    - mah_mindist
+    - rmd
+    - knn
+    - mahalanobispp
+    - vim
+    - react
+    - ashp
+    - ashs
+    - ashb
+    - dice
+    - gen
+    - scale
+    - nci
+    - odin
+    - gradnorm
+    - openmax
+    - kl_matching
+    - mcm
+    - clip_zeroshot_msp
+    - clip_text_energy
+    - tip_adapter
+  oracle:
+    - maf
+    - msp
+    - entropy
+    - energy
+    - maxlogit
+    - mahalanobis
+    - mah_mindist
+    - rmd
+    - knn
+    - mahalanobispp
+    - vim
+    - react
+    - ashp
+    - ashs
+    - ashb
+    - dice
+    - gen
+    - scale
+    - nci
+    - odin
+    - gradnorm
+    - openmax
+    - kl_matching
+    - mcm
+    - clip_zeroshot_msp
+    - clip_text_energy
+    - tip_adapter
+maf_ablation:
+  fusion:
+    - s_conf_only
+    - s_cons_only
+    - product
+    - sqrt_product
+    - arithmetic_mean
+    - harmonic_mean
+    - min
+    - max
+    - log
+  alpha_grid: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+  feature_norm:
+    - raw
+    - l2
+    - centered
+    - whitened
+  pca_dims: [64, 128, 256, 512]
+  distance:
+    - mahalanobis
+    - squared_mahalanobis
+    - euclidean
+    - cosine
+    - standardized_euclidean
+  covariance:
+    - tied_ledoit_wolf
+    - tied_empirical
+    - tied_diagonal
+    - tied_spherical
+    - oas
+    - class_wise
+    - class_wise_diagonal
+  prototype:
+    - class_mean
+    - class_median
+  prototype_source:
+    - id_train
+    - id_val
+    - id_train_val
+  distance_scores:
+    - nearest_mahalanobis
+    - distance_margin
+    - distance_ratio
+    - entropy
+    - gini
+    - renyi_entropy
+    - topk_distance_entropy
+
