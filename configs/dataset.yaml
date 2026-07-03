@@ -1,7 +1,16 @@
 dataset_root: /home/omote/CAT
 manifest_path: results/manifest.csv
 split_dir: results/splits
-target_per_class: 15000
+target_per_class:
+expected_counts:
+  cheetah: 12189
+  jaguar: 12208
+  leopard: 12396
+  lion: 17467
+  ocelot: 14252
+  puma: 22778
+  serval: 10411
+  tiger: 18587
 classes:
   - cheetah
   - jaguar
@@ -26,4 +35,3 @@ duplicate:
   use_sha256: true
   use_phash: false
   phash_size: 8
-

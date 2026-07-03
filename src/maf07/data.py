@@ -106,6 +106,7 @@ def audit_manifest(
     manifest: pd.DataFrame,
     classes: Iterable[str],
     target_per_class: int | None = None,
+    expected_counts: dict[str, int] | None = None,
 ) -> dict[str, object]:
     if manifest.empty:
         return {
@@ -119,16 +120,26 @@ def audit_manifest(
     corrupt_count = int(manifest.get("corrupt", pd.Series(dtype=bool)).fillna(False).sum())
     duplicate_exact_count = int(manifest.duplicated("sha256", keep=False).sum())
     enough = True
+    exact_counts = True
+    count_failures: dict[str, dict[str, int]] = {}
     if target_per_class is not None:
         enough = all(int(counts.get(c, 0)) >= target_per_class for c in classes)
-    ok = corrupt_count == 0 and enough
-    reason = "ok" if ok else "corrupt images or insufficient class counts"
+    if expected_counts:
+        for class_name in classes:
+            expected = int(expected_counts[class_name])
+            actual = int(counts.get(class_name, 0))
+            if actual != expected:
+                exact_counts = False
+                count_failures[class_name] = {"expected": expected, "actual": actual}
+    ok = corrupt_count == 0 and duplicate_exact_count == 0 and enough and exact_counts
+    reason = "ok" if ok else "corrupt, duplicate, or count mismatch"
     return {
         "ok": ok,
         "reason": reason,
         "class_counts": {k: int(v) for k, v in counts.items()},
         "corrupt_count": corrupt_count,
         "duplicate_exact_count": duplicate_exact_count,
+        "count_failures": count_failures,
     }
 
 
@@ -139,5 +150,7 @@ def verify_dataset(dataset_config: str | Path = "configs/dataset.yaml") -> dict[
         manifest = load_manifest(manifest_path)
     else:
         manifest = build_manifest(dataset_config)
-    return audit_manifest(manifest, cfg["classes"], int(cfg.get("target_per_class", 0)) or None)
-
+    target_raw = cfg.get("target_per_class")
+    target_per_class = int(target_raw) if target_raw is not None else None
+    expected_counts = cfg.get("expected_counts")
+    return audit_manifest(manifest, cfg["classes"], target_per_class, expected_counts)
