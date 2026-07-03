@@ -16,7 +16,6 @@ bootstrap:
   n_boot: 2000
   confidence: 0.95
 runtime:
-  batch_size: 64
+  batch_size: 8
   num_workers: 8
   device: cuda
-
