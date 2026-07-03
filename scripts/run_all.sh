@@ -25,7 +25,7 @@ done
 export MAF07_RESUME="$RESUME"
 export MAF07_WORKERS="$WORKERS"
 
-source .venv/bin/activate 2>/dev/null || true
+source "${MAF07_VENV:-.venv}/bin/activate" 2>/dev/null || true
 
 python -m maf07.cli verify-dataset --strict
 python -m maf07.cli make-splits
