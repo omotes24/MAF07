@@ -3,6 +3,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 export PYTHONPATH="$PWD/src:${PYTHONPATH:-}"
+export HF_HUB_DISABLE_XET="${HF_HUB_DISABLE_XET:-1}"
 
 RESUME=0
 WORKERS="auto"
