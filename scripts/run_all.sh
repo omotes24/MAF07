@@ -28,10 +28,25 @@ export MAF07_WORKERS="$WORKERS"
 
 source "${MAF07_VENV:-.venv}/bin/activate" 2>/dev/null || true
 
+run_with_retries() {
+  local attempts="${MAF07_RETRY_ATTEMPTS:-6}"
+  local delay="${MAF07_RETRY_DELAY:-300}"
+  local n=1
+  while true; do
+    "$@" && return 0
+    if [ "$n" -ge "$attempts" ]; then
+      return 1
+    fi
+    echo "command failed, retry $n/$attempts after ${delay}s: $*" >&2
+    sleep "$delay"
+    n=$((n + 1))
+  done
+}
+
 python -m maf07.cli verify-dataset --strict
 python -m maf07.cli make-splits
 python -m maf07.cli generate-expected-jobs
-python -m maf07.cli extract-features
+run_with_retries python -m maf07.cli extract-features
 python -m maf07.cli run-closed
 python -m maf07.cli run-ood-fair
 python -m maf07.cli run-ood-oracle
