@@ -14,14 +14,6 @@ import pandas as pd
 CLASSES = ["cheetah", "jaguar", "leopard", "lion", "ocelot", "puma", "serval", "tiger"]
 
 
-def sha256_file(path: Path, chunk_size: int = 1024 * 1024) -> str:
-    h = hashlib.sha256()
-    with path.open("rb") as f:
-        for chunk in iter(lambda: f.read(chunk_size), b""):
-            h.update(chunk)
-    return h.hexdigest()
-
-
 def link_or_copy(source: Path, destination: Path) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
     try:
@@ -69,8 +61,11 @@ def materialize(root: Path, manifest_path: Path, clear: bool = True) -> dict[str
     hash_rows = []
     for row in selected_df.itertuples(index=False):
         final_path = Path(str(getattr(row, "final_path")))
+        pixel_hash = str(getattr(row, "pixel_sha256", ""))
+        if not pixel_hash:
+            pixel_hash = str(getattr(row, "raw_sha256", ""))
         hash_rows.append(
-            f"{getattr(row, 'target_class')},{final_path.name},{sha256_file(final_path)}"
+            f"{getattr(row, 'target_class')},{final_path.name},{pixel_hash}"
         )
     data_hash = hashlib.sha256("\n".join(sorted(hash_rows)).encode("utf-8")).hexdigest()
     report = {
@@ -100,4 +95,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
