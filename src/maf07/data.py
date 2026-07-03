@@ -66,6 +66,11 @@ def build_manifest(
     classes = list(cfg["classes"])
     extensions = cfg.get("image_extensions", [".jpg", ".jpeg", ".png", ".webp"])
     output = ensure_parent(output_path or cfg.get("manifest_path", "results/manifest.csv"))
+    final_manifest = root / "metadata" / "final_manifest.csv"
+    if final_manifest.exists() and not bool(cfg.get("force_rescan", False)):
+        df = build_manifest_from_final_metadata(final_manifest, root, classes)
+        df.to_csv(output, index=False)
+        return df
 
     records: list[ImageRecord] = []
     files = list(iter_image_files(root, classes, extensions))
@@ -92,6 +97,49 @@ def build_manifest(
     if not df.empty:
         df = df.sort_values(["class_name", "rel_path"]).reset_index(drop=True)
     df.to_csv(output, index=False)
+    return df
+
+
+def build_manifest_from_final_metadata(
+    final_manifest: Path,
+    root: Path,
+    classes: Iterable[str],
+) -> pd.DataFrame:
+    source = pd.read_csv(final_manifest, low_memory=False)
+    if "target_class" not in source.columns or "final_path" not in source.columns:
+        raise ValueError(f"Final manifest missing required columns: {final_manifest}")
+    rows = []
+    for row in source.itertuples(index=False):
+        class_name = str(getattr(row, "target_class"))
+        if class_name not in classes:
+            continue
+        path = Path(str(getattr(row, "final_path")))
+        try:
+            rel_path = path.relative_to(root).as_posix()
+        except ValueError:
+            rel_path = path.as_posix()
+        sha = str(getattr(row, "pixel_sha256", "")) or str(getattr(row, "raw_sha256", ""))
+        if not sha:
+            sha = sha256_file(path)
+        width = int(getattr(row, "width", 0) or getattr(row, "source_width", 0) or 0)
+        height = int(getattr(row, "height", 0) or getattr(row, "source_height", 0) or 0)
+        image_id = hashlib.sha1(f"{class_name}/{rel_path}/{sha}".encode("utf-8")).hexdigest()
+        rows.append(
+            ImageRecord(
+                image_id=image_id,
+                class_name=class_name,
+                path=str(path),
+                rel_path=rel_path,
+                sha256=sha,
+                width=width,
+                height=height,
+                corrupt=not path.exists(),
+                duplicate_group=f"sha256:{sha}" if sha else f"path:{rel_path}",
+            ).__dict__
+        )
+    df = pd.DataFrame(rows)
+    if not df.empty:
+        df = df.sort_values(["class_name", "rel_path"]).reset_index(drop=True)
     return df
 
 
