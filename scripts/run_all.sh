@@ -46,7 +46,11 @@ run_with_retries() {
 python -m maf07.cli verify-dataset --strict
 python -m maf07.cli make-splits
 python -m maf07.cli generate-expected-jobs
-run_with_retries python -m maf07.cli extract-features
+if [ "$WORKERS" = "1" ]; then
+  run_with_retries python -m maf07.cli extract-features
+else
+  run_with_retries bash scripts/extract_features_parallel.sh "$WORKERS"
+fi
 python -m maf07.cli run-closed
 python -m maf07.cli run-ood-fair
 python -m maf07.cli run-ood-oracle
