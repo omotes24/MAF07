@@ -23,6 +23,7 @@ def test_ood_metrics_higher_is_id_like() -> None:
 def test_binary_logits_are_promoted_to_two_columns() -> None:
     logits = np.array([-2.0, 0.0, 2.0])
     assert logits_to_scores(logits, "msp").shape == (3,)
+    assert logits_to_scores(logits, "odin").shape == (3,)
     assert gradnorm(logits).shape == (3,)
     train = {
         0: np.array([-2.0, -1.0, -0.5]),

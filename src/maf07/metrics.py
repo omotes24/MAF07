@@ -170,7 +170,7 @@ def logits_to_scores(logits: np.ndarray, method: str, temperature: float = 1.0) 
     if method == "gen":
         return np.sum(np.sqrt(probs + EPS), axis=1)
     if method == "odin":
-        return softmax(np.asarray(logits, dtype=float) / 1000.0, axis=1).max(axis=1)
+        return softmax(as_class_logits(logits) / 1000.0, axis=1).max(axis=1)
     raise ValueError(f"Unknown logit score method: {method}")
 
 
