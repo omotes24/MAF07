@@ -132,6 +132,16 @@ def _openmax_score(train_x: np.ndarray, train_y: np.ndarray, test_x: np.ndarray)
     return adjusted
 
 
+def _completed_rows(jobs: list[pd.Series], artifacts: list[str]) -> pd.DataFrame:
+    rows: list[dict[str, object]] = []
+    for job, artifact in zip(jobs, artifacts, strict=True):
+        row = dict(job)
+        row["status"] = "completed"
+        row["artifact"] = artifact
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
 def _score_method(
     method: str,
     train_x: np.ndarray,
@@ -194,6 +204,112 @@ def _score_method(
     if method == "tip_adapter":
         onehot = np.eye(len(np.unique(train_y)))[train_y]
         return tip_adapter_score(eval_x, train_x, onehot, prototypes)
+    raise ValueError(f"Unknown OOD method: {method}")
+
+
+def _score_ood_group_method(
+    method: str,
+    train_x: np.ndarray,
+    train_y: np.ndarray,
+    val_x: np.ndarray,
+    val_y: np.ndarray,
+    eval_x: np.ndarray,
+    cache: dict[str, object],
+) -> np.ndarray:
+    method = method.lower()
+
+    if method in {"msp", "entropy", "energy", "maxlogit", "odin", "gen", "gradnorm", "kl_matching"}:
+        if "eval_logits" not in cache:
+            logits, by_class = _logit_training(train_x, train_y, eval_x)
+            cache["eval_logits"] = logits
+            cache["train_logits_by_class"] = by_class
+        logits = cache["eval_logits"]
+        if method in {"msp", "entropy", "energy", "maxlogit", "odin", "gen"}:
+            return logits_to_scores(logits, method)
+        if method == "gradnorm":
+            return gradnorm(logits)
+        return kl_matching(logits, cache["train_logits_by_class"])
+
+    if method == "maf":
+        if "maf_main" not in cache:
+            fit_x = val_x if len(val_x) else train_x
+            fit_y = val_y if len(val_y) else train_y
+            cache["maf_main"] = MAFScorer().fit(fit_x, fit_y)
+        return cache["maf_main"].score(eval_x)
+
+    if method == "openmax":
+        if "openmax" not in cache:
+            cache["openmax"] = _openmax_score(train_x, train_y, eval_x)
+        return cache["openmax"]
+    if method in {"mahalanobis", "mah_mindist"}:
+        if "mahalanobis" not in cache:
+            cache["mahalanobis"] = mahalanobis_score(train_x, train_y, eval_x)
+        return cache["mahalanobis"]
+    if method == "rmd":
+        if "rmd" not in cache:
+            cache["rmd"] = rmd_score(train_x, train_y, eval_x)
+        return cache["rmd"]
+    if method == "knn":
+        if "knn" not in cache:
+            cache["knn"] = knn_score(train_x, eval_x)
+        return cache["knn"]
+    if method == "mahalanobispp":
+        if "mahalanobispp" not in cache:
+            cache["mahalanobispp"] = mahalanobispp_score(train_x, train_y, val_x, eval_x)
+        return cache["mahalanobispp"]
+    if method == "vim":
+        if "vim" not in cache:
+            cache["vim"] = _vim_score(train_x, train_y, eval_x)
+        return cache["vim"]
+
+    if "prototypes" not in cache:
+        _, cache["prototypes"] = _class_prototypes(train_x, train_y)
+    prototypes = cache["prototypes"]
+    if method == "react":
+        if "react" not in cache:
+            cache["react"] = feature_energy(react_features(train_x, eval_x), prototypes)
+        return cache["react"]
+    if method == "ashp":
+        if "ashp" not in cache:
+            cache["ashp"] = feature_energy(ash_features(eval_x, variant="p"), prototypes)
+        return cache["ashp"]
+    if method == "ashs":
+        if "ashs" not in cache:
+            cache["ashs"] = feature_energy(ash_features(eval_x, variant="s"), prototypes)
+        return cache["ashs"]
+    if method == "ashb":
+        if "ashb" not in cache:
+            cache["ashb"] = feature_energy(ash_features(eval_x, variant="b"), prototypes)
+        return cache["ashb"]
+    if method == "dice":
+        if "dice" not in cache:
+            cache["dice"] = feature_energy(dice_features(train_x, eval_x), prototypes)
+        return cache["dice"]
+    if method == "scale":
+        if "scale" not in cache:
+            cache["scale"] = scale_score(eval_x, prototypes)
+        return cache["scale"]
+    if method == "nci":
+        if "nci" not in cache:
+            cache["nci"] = nci_score(eval_x, prototypes)
+        return cache["nci"]
+    if method == "mcm":
+        if "mcm" not in cache:
+            cache["mcm"] = mcm_score(eval_x, prototypes)
+        return cache["mcm"]
+    if method == "clip_zeroshot_msp":
+        if "clip_zeroshot_msp" not in cache:
+            cache["clip_zeroshot_msp"] = clip_zero_shot_msp(eval_x, prototypes)
+        return cache["clip_zeroshot_msp"]
+    if method == "clip_text_energy":
+        if "clip_text_energy" not in cache:
+            cache["clip_text_energy"] = clip_text_energy(eval_x, prototypes)
+        return cache["clip_text_energy"]
+    if method == "tip_adapter":
+        if "tip_adapter" not in cache:
+            onehot = np.eye(len(np.unique(train_y)))[train_y]
+            cache["tip_adapter"] = tip_adapter_score(eval_x, train_x, onehot, prototypes)
+        return cache["tip_adapter"]
     raise ValueError(f"Unknown OOD method: {method}")
 
 
@@ -268,38 +384,52 @@ def run_ood_jobs(
     scores_dir.mkdir(parents=True, exist_ok=True)
     summary_path = summary_dir / ("oracle_summary.csv" if protocol == "oracle" else "summary_by_setting.csv")
     count = 0
-    for _, job in jobs.iterrows():
-        split = _load_split(int(job["seed"]), split_dir)
-        id_classes = str(job["id_set"]).split("|")
+    group_cols = ["backbone", "seed", "id_set"]
+    for _, group in jobs.groupby(group_cols, sort=False):
+        first = group.iloc[0]
+        split = _load_split(int(first["seed"]), split_dir)
+        id_classes = str(first["id_set"]).split("|")
         eval_frame = make_ood_eval_frame(split, id_classes, protocol=protocol)
-        rows, features = feature_frame_for_split(eval_frame, str(job["backbone"]))
+        rows, features = feature_frame_for_split(eval_frame, str(first["backbone"]))
         train_mask = rows["role"] == "id_train"
         val_mask = rows["role"] == "id_val"
         eval_mask = rows["role"].isin(["id_test", "ood_test"])
         enc = LabelEncoder().fit(rows.loc[train_mask, "class_name"])
         train_y = enc.transform(rows.loc[train_mask, "class_name"])
         val_y = enc.transform(rows.loc[val_mask, "class_name"]) if val_mask.any() else train_y
-        scores = _score_method(
-            str(job["method"]),
-            features[train_mask.to_numpy()],
-            train_y,
-            features[val_mask.to_numpy()] if val_mask.any() else features[train_mask.to_numpy()],
-            val_y,
-            features[eval_mask.to_numpy()],
-            oracle_labels=rows.loc[eval_mask, "ood_label"].to_numpy(),
-        )
-        score_rows = rows.loc[eval_mask, ["image_id", "class_name", "split", "role", "ood_label"]].copy()
-        score_rows["is_id"] = (score_rows["ood_label"] == 0).astype(int)
-        score_rows["score"] = scores
-        for col in job.index:
-            score_rows[col] = job[col]
-        score_path = scores_dir / f"{job['job_id']}.parquet"
-        score_rows.to_parquet(score_path, index=False)
-        metrics = ood_metrics(score_rows["is_id"].to_numpy(), score_rows["score"].to_numpy())
-        summary = {**job.to_dict(), **metrics}
-        append_csv_rows(pd.DataFrame([summary]), summary_path)
-        append_completed_job(job, artifact=str(score_path))
-        count += 1
+        train_x = features[train_mask.to_numpy()]
+        val_x = features[val_mask.to_numpy()] if val_mask.any() else train_x
+        eval_x = features[eval_mask.to_numpy()]
+        base_score_rows = rows.loc[eval_mask, ["image_id", "class_name", "split", "role", "ood_label"]].copy()
+        base_score_rows["is_id"] = (base_score_rows["ood_label"] == 0).astype(int)
+        cache: dict[str, object] = {}
+        summaries: list[dict[str, object]] = []
+        completed_jobs: list[pd.Series] = []
+        artifacts: list[str] = []
+        for _, job in group.iterrows():
+            scores = _score_ood_group_method(
+                str(job["method"]),
+                train_x,
+                train_y,
+                val_x,
+                val_y,
+                eval_x,
+                cache,
+            )
+            score_rows = base_score_rows.copy()
+            score_rows["score"] = scores
+            for col in job.index:
+                score_rows[col] = job[col]
+            score_path = scores_dir / f"{job['job_id']}.parquet"
+            score_rows.to_parquet(score_path, index=False)
+            metrics = ood_metrics(score_rows["is_id"].to_numpy(), score_rows["score"].to_numpy())
+            summaries.append({**job.to_dict(), **metrics})
+            completed_jobs.append(job)
+            artifacts.append(str(score_path))
+        if summaries:
+            append_csv_rows(pd.DataFrame(summaries), summary_path)
+            append_csv_rows(_completed_rows(completed_jobs, artifacts), "results/coverage/completed_jobs.csv")
+            count += len(summaries)
     return count
 
 
@@ -331,46 +461,76 @@ def run_ablation_jobs(
     out_path = resolve_path("results/ablation/maf_ablation.csv")
     out_path.parent.mkdir(parents=True, exist_ok=True)
     count = 0
-    for _, job in jobs.iterrows():
-        split = _load_split(int(job["seed"]), split_dir)
-        id_classes = str(job["id_set"]).split("|")
+    group_cols = ["backbone", "seed", "id_set"]
+    for _, group in jobs.groupby(group_cols, sort=False):
+        first = group.iloc[0]
+        split = _load_split(int(first["seed"]), split_dir)
+        id_classes = str(first["id_set"]).split("|")
         eval_frame = make_ood_eval_frame(split, id_classes, protocol="fair")
-        rows, features = feature_frame_for_split(eval_frame, str(job["backbone"]))
+        rows, features = feature_frame_for_split(eval_frame, str(first["backbone"]))
         train_mask = rows["role"] == "id_train"
         val_mask = rows["role"] == "id_val"
         eval_mask = rows["role"].isin(["id_test", "ood_test"])
         enc = LabelEncoder().fit(rows.loc[train_mask, "class_name"])
         train_y = enc.transform(rows.loc[train_mask, "class_name"])
         val_y = enc.transform(rows.loc[val_mask, "class_name"]) if val_mask.any() else train_y
-        cfg = _parse_variant(str(job["variant"]))
+        train_x = features[train_mask.to_numpy()]
         fit_x = features[val_mask.to_numpy()] if val_mask.any() else features[train_mask.to_numpy()]
         fit_y = val_y
-        scorer = MAFScorer(
-            alpha=float(cfg.get("alpha", 0.5)),
-            covariance=str(cfg.get("covariance", "tied_ledoit_wolf")),
-            feature_norm=str(cfg.get("feature_norm", "raw")),
-            distance=str(cfg.get("distance", "mahalanobis")),
-            prototype=str(cfg.get("prototype", "class_mean")),
-            pca_dim=cfg.get("pca_dim"),
-        ).fit(fit_x, fit_y)
         eval_x = features[eval_mask.to_numpy()]
-        if "distance_score" in cfg:
-            scores = distance_variant_score(scorer.distances(eval_x), str(cfg["distance_score"]))
-        else:
-            comp = scorer.score_components(eval_x)
-            scores = maf_fusion(
-                comp["s_conf"],
-                comp["s_cons"],
-                alpha=float(cfg.get("alpha", 0.5)),
-                mode=str(cfg.get("fusion", "alpha")),
-            )
         score_rows = rows.loc[eval_mask, ["class_name", "ood_label"]].copy()
         score_rows["is_id"] = (score_rows["ood_label"] == 0).astype(int)
-        metrics = ood_metrics(score_rows["is_id"].to_numpy(), scores)
-        result = {**job.to_dict(), **metrics}
-        append_csv_rows(pd.DataFrame([result]), out_path)
-        append_completed_job(job, artifact=str(out_path))
-        count += 1
+        results: list[dict[str, object]] = []
+        completed_jobs: list[pd.Series] = []
+        artifacts: list[str] = []
+        scorer_cache: dict[tuple[object, ...], MAFScorer] = {}
+        component_cache: dict[tuple[object, ...], dict[str, np.ndarray]] = {}
+        distance_cache: dict[tuple[object, ...], np.ndarray] = {}
+        for _, job in group.iterrows():
+            cfg = _parse_variant(str(job["variant"]))
+            key = (
+                str(cfg.get("covariance", "tied_ledoit_wolf")),
+                str(cfg.get("feature_norm", "raw")),
+                str(cfg.get("distance", "mahalanobis")),
+                str(cfg.get("prototype", "class_mean")),
+                cfg.get("pca_dim"),
+            )
+            scorer = scorer_cache.get(key)
+            if scorer is None:
+                scorer = MAFScorer(
+                    alpha=float(cfg.get("alpha", 0.5)),
+                    covariance=str(cfg.get("covariance", "tied_ledoit_wolf")),
+                    feature_norm=str(cfg.get("feature_norm", "raw")),
+                    distance=str(cfg.get("distance", "mahalanobis")),
+                    prototype=str(cfg.get("prototype", "class_mean")),
+                    pca_dim=cfg.get("pca_dim"),
+                ).fit(fit_x, fit_y)
+                scorer_cache[key] = scorer
+            if "distance_score" in cfg:
+                distances = distance_cache.get(key)
+                if distances is None:
+                    distances = scorer.distances(eval_x)
+                    distance_cache[key] = distances
+                scores = distance_variant_score(distances, str(cfg["distance_score"]))
+            else:
+                comp = component_cache.get(key)
+                if comp is None:
+                    comp = scorer.score_components(eval_x)
+                    component_cache[key] = comp
+                scores = maf_fusion(
+                    comp["s_conf"],
+                    comp["s_cons"],
+                    alpha=float(cfg.get("alpha", 0.5)),
+                    mode=str(cfg.get("fusion", "alpha")),
+                )
+            metrics = ood_metrics(score_rows["is_id"].to_numpy(), scores)
+            results.append({**job.to_dict(), **metrics})
+            completed_jobs.append(job)
+            artifacts.append(str(out_path))
+        if results:
+            append_csv_rows(pd.DataFrame(results), out_path)
+            append_csv_rows(_completed_rows(completed_jobs, artifacts), "results/coverage/completed_jobs.csv")
+            count += len(results)
     return count
 
 
