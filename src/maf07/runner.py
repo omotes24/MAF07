@@ -49,7 +49,18 @@ def _pending_jobs(kind: str, protocol: str | None = None) -> pd.DataFrame:
     jobs = expected[(expected["job_kind"] == kind) & (~expected["job_id"].isin(done))]
     if protocol is not None:
         jobs = jobs[jobs["protocol"] == protocol]
+    backbone_filter = _selected_backbones_from_env()
+    if backbone_filter is not None:
+        jobs = jobs[jobs["backbone"].astype(str).isin(backbone_filter)]
     return jobs.sort_values("job_id").reset_index(drop=True)
+
+
+def _selected_backbones_from_env() -> set[str] | None:
+    raw = os.environ.get("MAF07_BACKBONES") or os.environ.get("MAF07_BACKBONE_FILTER")
+    if not raw:
+        return None
+    values = {item.strip() for chunk in raw.split(",") for item in chunk.split() if item.strip()}
+    return values or None
 
 
 def _job_shard(

@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 from maf07.jobs import append_csv_rows, audit_coverage, generate_expected_jobs
-from maf07.runner import _job_shard
+from maf07.runner import _job_shard, _selected_backbones_from_env
 
 
 def test_expected_jobs_include_all_ood_split_settings() -> None:
@@ -51,3 +51,12 @@ def test_append_csv_rows_adds_one_header(tmp_path: Path) -> None:
     lines = out.read_text(encoding="utf-8").splitlines()
     assert lines.count("job_id,status") == 1
     assert pd.read_csv(out)["job_id"].tolist() == ["a", "b"]
+
+
+def test_backbone_filter_env_accepts_commas_and_spaces(monkeypatch) -> None:
+    monkeypatch.setenv("MAF07_BACKBONES", "dinov2_vitb14, dinov2_vitl14 openai_clip_vitb16")
+    assert _selected_backbones_from_env() == {
+        "dinov2_vitb14",
+        "dinov2_vitl14",
+        "openai_clip_vitb16",
+    }
