@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import itertools
 import json
+import fcntl
 from pathlib import Path
 from typing import Iterable
 
@@ -162,10 +163,20 @@ def append_completed_job(
     row = dict(job)
     row["status"] = status
     row["artifact"] = artifact
+    append_csv_rows(pd.DataFrame([row]), output_path)
+
+
+def append_csv_rows(df: pd.DataFrame, output_path: str | Path) -> None:
     out = resolve_path(output_path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    header = not out.exists()
-    pd.DataFrame([row]).to_csv(out, mode="a", header=header, index=False)
+    lock_path = out.with_name(f"{out.name}.lock")
+    with lock_path.open("a", encoding="utf-8") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        try:
+            header = not out.exists() or out.stat().st_size == 0
+            df.to_csv(out, mode="a", header=header, index=False)
+        finally:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
 
 def read_completed_jobs(path: str | Path = "results/coverage/completed_jobs.csv") -> pd.DataFrame:
@@ -213,4 +224,3 @@ def audit_coverage(
             f"{report['missing_jobs']} missing, {report['extra_completed_jobs']} extra"
         )
     return report
-

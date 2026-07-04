@@ -43,6 +43,15 @@ run_with_retries() {
   done
 }
 
+run_job_stage() {
+  local stage="$1"
+  if [ "$WORKERS" = "1" ]; then
+    python -m maf07.cli "$stage"
+  else
+    bash scripts/run_jobs_parallel.sh "$stage" "$WORKERS"
+  fi
+}
+
 python -m maf07.cli verify-dataset --strict
 python -m maf07.cli make-splits
 python -m maf07.cli generate-expected-jobs
@@ -51,10 +60,10 @@ if [ "$WORKERS" = "1" ]; then
 else
   run_with_retries bash scripts/extract_features_parallel.sh "$WORKERS"
 fi
-python -m maf07.cli run-closed
-python -m maf07.cli run-ood-fair
-python -m maf07.cli run-ood-oracle
-python -m maf07.cli run-ablation
+run_with_retries run_job_stage run-closed
+run_with_retries run_job_stage run-ood-fair
+run_with_retries run_job_stage run-ood-oracle
+run_with_retries run_job_stage run-ablation
 python -m maf07.cli aggregate
 python -m maf07.cli make-tables
 python -m maf07.cli make-figures

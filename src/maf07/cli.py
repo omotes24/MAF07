@@ -39,15 +39,23 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("run-closed")
     p.add_argument("--max-jobs", type=int, default=None)
+    p.add_argument("--worker-index", type=int, default=None)
+    p.add_argument("--worker-count", type=int, default=None)
 
     p = sub.add_parser("run-ood-fair")
     p.add_argument("--max-jobs", type=int, default=None)
+    p.add_argument("--worker-index", type=int, default=None)
+    p.add_argument("--worker-count", type=int, default=None)
 
     p = sub.add_parser("run-ood-oracle")
     p.add_argument("--max-jobs", type=int, default=None)
+    p.add_argument("--worker-index", type=int, default=None)
+    p.add_argument("--worker-count", type=int, default=None)
 
     p = sub.add_parser("run-ablation")
     p.add_argument("--max-jobs", type=int, default=None)
+    p.add_argument("--worker-index", type=int, default=None)
+    p.add_argument("--worker-count", type=int, default=None)
 
     sub.add_parser("aggregate")
     sub.add_parser("make-tables")
@@ -80,16 +88,50 @@ def main(argv: list[str] | None = None) -> int:
         _print_json({"feature_caches": count})
         return 0
     if args.cmd == "run-closed":
-        _print_json({"completed": run_closed_jobs(max_jobs=args.max_jobs)})
+        _print_json(
+            {
+                "completed": run_closed_jobs(
+                    max_jobs=args.max_jobs,
+                    worker_index=args.worker_index,
+                    worker_count=args.worker_count,
+                )
+            }
+        )
         return 0
     if args.cmd == "run-ood-fair":
-        _print_json({"completed": run_ood_jobs("fair", max_jobs=args.max_jobs)})
+        _print_json(
+            {
+                "completed": run_ood_jobs(
+                    "fair",
+                    max_jobs=args.max_jobs,
+                    worker_index=args.worker_index,
+                    worker_count=args.worker_count,
+                )
+            }
+        )
         return 0
     if args.cmd == "run-ood-oracle":
-        _print_json({"completed": run_ood_jobs("oracle", max_jobs=args.max_jobs)})
+        _print_json(
+            {
+                "completed": run_ood_jobs(
+                    "oracle",
+                    max_jobs=args.max_jobs,
+                    worker_index=args.worker_index,
+                    worker_count=args.worker_count,
+                )
+            }
+        )
         return 0
     if args.cmd == "run-ablation":
-        _print_json({"completed": run_ablation_jobs(max_jobs=args.max_jobs)})
+        _print_json(
+            {
+                "completed": run_ablation_jobs(
+                    max_jobs=args.max_jobs,
+                    worker_index=args.worker_index,
+                    worker_count=args.worker_count,
+                )
+            }
+        )
         return 0
     if args.cmd == "aggregate":
         paths = {
@@ -113,4 +155,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

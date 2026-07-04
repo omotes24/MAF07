@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -11,7 +12,7 @@ from sklearn.preprocessing import LabelEncoder, normalize
 from .config import load_yaml, resolve_path
 from .features import feature_frame_for_split
 from .heads import fit_closed_head
-from .jobs import append_completed_job, read_completed_jobs, read_expected_jobs
+from .jobs import append_completed_job, append_csv_rows, read_completed_jobs, read_expected_jobs
 from .metrics import closed_classification_metrics, logits_to_scores, ood_metrics
 from .methods.baselines_activation import (
     ash_features,
@@ -49,6 +50,24 @@ def _pending_jobs(kind: str, protocol: str | None = None) -> pd.DataFrame:
     if protocol is not None:
         jobs = jobs[jobs["protocol"] == protocol]
     return jobs.sort_values("job_id").reset_index(drop=True)
+
+
+def _job_shard(
+    jobs: pd.DataFrame,
+    worker_index: int | None = None,
+    worker_count: int | None = None,
+) -> pd.DataFrame:
+    if worker_index is None:
+        raw = os.environ.get("MAF07_JOB_WORKER_INDEX")
+        worker_index = int(raw) if raw is not None else 0
+    if worker_count is None:
+        raw = os.environ.get("MAF07_JOB_WORKER_COUNT")
+        worker_count = int(raw) if raw is not None else 1
+    if worker_count <= 1:
+        return jobs.reset_index(drop=True)
+    if worker_index < 0 or worker_index >= worker_count:
+        raise ValueError(f"Invalid worker shard {worker_index}/{worker_count}")
+    return jobs.iloc[worker_index::worker_count].reset_index(drop=True)
 
 
 def _class_prototypes(features: np.ndarray, labels: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -152,8 +171,13 @@ def _score_method(
     raise ValueError(f"Unknown OOD method: {method}")
 
 
-def run_closed_jobs(max_jobs: int | None = None, split_dir: str | Path = "results/splits") -> int:
-    jobs = _pending_jobs("closed")
+def run_closed_jobs(
+    max_jobs: int | None = None,
+    split_dir: str | Path = "results/splits",
+    worker_index: int | None = None,
+    worker_count: int | None = None,
+) -> int:
+    jobs = _job_shard(_pending_jobs("closed"), worker_index, worker_count)
     if max_jobs is not None:
         jobs = jobs.head(max_jobs)
     out_path = resolve_path("results/closed/results.csv")
@@ -180,8 +204,7 @@ def run_closed_jobs(max_jobs: int | None = None, split_dir: str | Path = "result
             if not isinstance(v, (dict, list))
         }
         row = {**job.to_dict(), **flat}
-        header = not out_path.exists()
-        pd.DataFrame([row]).to_csv(out_path, mode="a", header=header, index=False)
+        append_csv_rows(pd.DataFrame([row]), out_path)
         cm_path = resolve_path("results/closed/confusion_matrices") / f"{job['job_id']}.json"
         cm_path.parent.mkdir(parents=True, exist_ok=True)
         cm_path.write_text(
@@ -208,8 +231,10 @@ def run_ood_jobs(
     protocol: str,
     max_jobs: int | None = None,
     split_dir: str | Path = "results/splits",
+    worker_index: int | None = None,
+    worker_count: int | None = None,
 ) -> int:
-    jobs = _pending_jobs("ood", protocol)
+    jobs = _job_shard(_pending_jobs("ood", protocol), worker_index, worker_count)
     if max_jobs is not None:
         jobs = jobs.head(max_jobs)
     summary_dir = resolve_path(f"results/ood/{protocol}")
@@ -246,8 +271,7 @@ def run_ood_jobs(
         score_rows.to_parquet(score_path, index=False)
         metrics = ood_metrics(score_rows["is_id"].to_numpy(), score_rows["score"].to_numpy())
         summary = {**job.to_dict(), **metrics}
-        header = not summary_path.exists()
-        pd.DataFrame([summary]).to_csv(summary_path, mode="a", header=header, index=False)
+        append_csv_rows(pd.DataFrame([summary]), summary_path)
         append_completed_job(job, artifact=str(score_path))
         count += 1
     return count
@@ -269,8 +293,13 @@ def _parse_variant(variant: str) -> dict[str, object]:
     return cfg
 
 
-def run_ablation_jobs(max_jobs: int | None = None, split_dir: str | Path = "results/splits") -> int:
-    jobs = _pending_jobs("ablation", "fair")
+def run_ablation_jobs(
+    max_jobs: int | None = None,
+    split_dir: str | Path = "results/splits",
+    worker_index: int | None = None,
+    worker_count: int | None = None,
+) -> int:
+    jobs = _job_shard(_pending_jobs("ablation", "fair"), worker_index, worker_count)
     if max_jobs is not None:
         jobs = jobs.head(max_jobs)
     out_path = resolve_path("results/ablation/maf_ablation.csv")
@@ -313,8 +342,7 @@ def run_ablation_jobs(max_jobs: int | None = None, split_dir: str | Path = "resu
         score_rows["is_id"] = (score_rows["ood_label"] == 0).astype(int)
         metrics = ood_metrics(score_rows["is_id"].to_numpy(), scores)
         result = {**job.to_dict(), **metrics}
-        header = not out_path.exists()
-        pd.DataFrame([result]).to_csv(out_path, mode="a", header=header, index=False)
+        append_csv_rows(pd.DataFrame([result]), out_path)
         append_completed_job(job, artifact=str(out_path))
         count += 1
     return count
@@ -336,4 +364,3 @@ def extract_configured_features(
     for name in names:
         extract_feature_cache(name, resume=resume)
     return len(names)
-
