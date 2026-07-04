@@ -4,6 +4,7 @@ import numpy as np
 
 from maf07.methods.baselines_logit import gradnorm, kl_matching
 from maf07.metrics import fpr95, logits_to_scores, ood_metrics, oscr
+from maf07.runner import _torch_ridge_logits
 
 
 def test_fpr95_definition() -> None:
@@ -36,3 +37,13 @@ def test_oscr_uses_supported_trapezoid_integration() -> None:
     id_scores = np.array([0.9, 0.8, 0.7])
     ood_scores = np.array([0.3, 0.2, 0.1])
     assert oscr(id_scores, ood_scores) >= 0.0
+
+
+def test_torch_ridge_logits_shape(monkeypatch) -> None:
+    monkeypatch.setenv("MAF07_TORCH_DEVICE", "cpu")
+    train_x = np.array([[1, 0], [0, 1], [1, 1], [-1, 0], [0, -1], [-1, -1]], dtype=float)
+    train_y = np.array([0, 0, 0, 1, 1, 1])
+    test_x = np.array([[0.5, 0.5], [-0.5, -0.5]], dtype=float)
+    logits, by_class = _torch_ridge_logits(train_x, train_y, test_x)
+    assert logits.shape == (2, 2)
+    assert sorted(by_class) == [0, 1]

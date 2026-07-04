@@ -106,10 +106,53 @@ def _logit_training(
     train_y: np.ndarray,
     test_x: np.ndarray,
 ) -> tuple[np.ndarray, dict[int, np.ndarray]]:
+    backend = os.environ.get("MAF07_LOGIT_BACKEND", "torch_ridge").lower()
+    if backend in {"torch", "torch_ridge", "cuda", "gpu"}:
+        try:
+            return _torch_ridge_logits(train_x, train_y, test_x)
+        except Exception:
+            if os.environ.get("MAF07_STRICT_TORCH_LOGITS", "0") == "1":
+                raise
     logits = fit_closed_head("linear_probe", train_x, train_y, test_x)
     train_logits = fit_closed_head("linear_probe", train_x, train_y, train_x)
     by_class = {int(c): train_logits[train_y == c] for c in sorted(np.unique(train_y))}
     return logits, by_class
+
+
+def _torch_ridge_logits(
+    train_x: np.ndarray,
+    train_y: np.ndarray,
+    test_x: np.ndarray,
+) -> tuple[np.ndarray, dict[int, np.ndarray]]:
+    import torch
+
+    device_name = os.environ.get("MAF07_TORCH_DEVICE")
+    if device_name is None:
+        device_name = "cuda" if torch.cuda.is_available() else "cpu"
+    device = torch.device(device_name)
+    dtype = torch.float32
+    x = torch.as_tensor(np.asarray(train_x, dtype=np.float32), device=device, dtype=dtype)
+    xe = torch.as_tensor(np.asarray(test_x, dtype=np.float32), device=device, dtype=dtype)
+    y_np = np.asarray(train_y, dtype=int)
+    classes = np.asarray(sorted(np.unique(y_np)))
+    class_to_col = {int(cls): i for i, cls in enumerate(classes)}
+    y_cols = torch.as_tensor([class_to_col[int(v)] for v in y_np], device=device, dtype=torch.long)
+    y = torch.nn.functional.one_hot(y_cols, num_classes=len(classes)).to(dtype)
+    ones = torch.ones((x.shape[0], 1), device=device, dtype=dtype)
+    x_aug = torch.cat([x, ones], dim=1)
+    xe_aug = torch.cat([xe, torch.ones((xe.shape[0], 1), device=device, dtype=dtype)], dim=1)
+    reg = float(os.environ.get("MAF07_RIDGE_LAMBDA", "1e-3"))
+    gram = x_aug.T @ x_aug
+    eye = torch.eye(gram.shape[0], device=device, dtype=dtype)
+    eye[-1, -1] = 0.0
+    rhs = x_aug.T @ y
+    weights = torch.linalg.solve(gram + reg * eye, rhs)
+    eval_logits = xe_aug @ weights
+    train_logits = x_aug @ weights
+    eval_np = eval_logits.detach().cpu().numpy()
+    train_np = train_logits.detach().cpu().numpy()
+    by_class = {int(c): train_np[y_np == int(c)] for c in classes}
+    return eval_np, by_class
 
 
 def _vim_score(train_x: np.ndarray, train_y: np.ndarray, test_x: np.ndarray) -> np.ndarray:
