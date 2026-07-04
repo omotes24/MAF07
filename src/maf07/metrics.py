@@ -20,13 +20,20 @@ EPS = 1e-12
 
 
 def ensure_probabilities(logits_or_probs: np.ndarray) -> np.ndarray:
-    arr = np.asarray(logits_or_probs, dtype=float)
+    arr = as_class_logits(logits_or_probs)
     if arr.ndim != 2:
         raise ValueError("Expected a 2D array")
     row_sums = arr.sum(axis=1)
     if np.all(arr >= 0) and np.allclose(row_sums, 1.0, atol=1e-5):
         return np.clip(arr, EPS, 1.0)
     return np.clip(softmax(arr, axis=1), EPS, 1.0)
+
+
+def as_class_logits(logits_or_scores: np.ndarray) -> np.ndarray:
+    arr = np.asarray(logits_or_scores, dtype=float)
+    if arr.ndim == 1:
+        return np.stack([-arr, arr], axis=1)
+    return arr
 
 
 def topk_accuracy(logits_or_probs: np.ndarray, y_true: np.ndarray, k: int) -> float:
@@ -117,7 +124,7 @@ def oscr(id_scores: np.ndarray, ood_scores: np.ndarray, correct: np.ndarray | No
         xs.append(fpr)
         ys.append(ccr)
     order = np.argsort(xs)
-    return float(np.trapz(np.asarray(ys)[order], np.asarray(xs)[order]))
+    return float(np.trapezoid(np.asarray(ys)[order], np.asarray(xs)[order]))
 
 
 def ood_metrics(
@@ -148,7 +155,7 @@ def ood_metrics(
 
 
 def logits_to_scores(logits: np.ndarray, method: str, temperature: float = 1.0) -> np.ndarray:
-    z = np.asarray(logits, dtype=float) / float(temperature)
+    z = as_class_logits(logits) / float(temperature)
     probs = softmax(z, axis=1)
     method = method.lower()
     if method == "msp":
@@ -179,4 +186,3 @@ def score_summary_by_class(frame: pd.DataFrame, score_col: str = "score") -> pd.
 class MetricResult:
     method: str
     metrics: dict[str, float]
-
