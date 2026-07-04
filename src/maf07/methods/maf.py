@@ -49,7 +49,8 @@ def feature_transform(
     fit = np.asarray(x_fit, dtype=float)
     app = np.asarray(x_apply, dtype=float)
     if mode == "raw":
-        pass
+        fit = fit.copy()
+        app = app.copy()
     elif mode == "l2":
         fit = normalize(fit)
         app = normalize(app)
@@ -224,4 +225,3 @@ def distance_variant_score(distances: np.ndarray, variant: str) -> np.ndarray:
         p = p / p.sum(axis=1, keepdims=True)
         return np.sum(p * np.log(p + EPS), axis=1)
     raise ValueError(f"Unknown distance variant: {variant}")
-
