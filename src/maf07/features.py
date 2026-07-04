@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -29,6 +30,7 @@ def cache_paths(backbone: str, cache_dir: str | Path = "results/features") -> Fe
     )
 
 
+@lru_cache(maxsize=None)
 def load_feature_cache(backbone: str, cache_dir: str | Path = "results/features") -> tuple[pd.DataFrame, np.ndarray]:
     paths = cache_paths(backbone, cache_dir)
     if not paths.feature_path.exists() or not paths.metadata_path.exists():
@@ -106,4 +108,3 @@ def feature_frame_for_split(
         raise KeyError(f"{len(missing)} split rows are missing from feature cache for {backbone}")
     indices = np.asarray([index[image_id] for image_id in rows["image_id"].astype(str)], dtype=int)
     return rows.reset_index(drop=True), features[indices]
-

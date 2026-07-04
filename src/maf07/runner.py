@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -35,6 +36,7 @@ from .methods.maf import MAFScorer, distance_variant_score, maf_fusion
 from .splits import make_ood_eval_frame
 
 
+@lru_cache(maxsize=None)
 def _load_split(seed: int, split_dir: str | Path = "results/splits") -> pd.DataFrame:
     path = resolve_path(split_dir) / f"splits_seed{seed}.csv"
     if not path.exists():
@@ -52,7 +54,18 @@ def _pending_jobs(kind: str, protocol: str | None = None) -> pd.DataFrame:
     backbone_filter = _selected_backbones_from_env()
     if backbone_filter is not None:
         jobs = jobs[jobs["backbone"].astype(str).isin(backbone_filter)]
-    return jobs.sort_values("job_id").reset_index(drop=True)
+    preferred_order = [
+        "backbone",
+        "seed",
+        "id_size",
+        "id_set",
+        "protocol",
+        "method",
+        "variant",
+        "job_id",
+    ]
+    sort_cols = [col for col in preferred_order if col in jobs.columns]
+    return jobs.sort_values(sort_cols).reset_index(drop=True)
 
 
 def _selected_backbones_from_env() -> set[str] | None:
@@ -78,7 +91,9 @@ def _job_shard(
         return jobs.reset_index(drop=True)
     if worker_index < 0 or worker_index >= worker_count:
         raise ValueError(f"Invalid worker shard {worker_index}/{worker_count}")
-    return jobs.iloc[worker_index::worker_count].reset_index(drop=True)
+    start = len(jobs) * worker_index // worker_count
+    end = len(jobs) * (worker_index + 1) // worker_count
+    return jobs.iloc[start:end].reset_index(drop=True)
 
 
 def _class_prototypes(features: np.ndarray, labels: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
