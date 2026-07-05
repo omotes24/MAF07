@@ -16,7 +16,7 @@ ood_methods:
     - mah_mindist
     - rmd
     - knn
-    - cqs
+    - card
     - lar
     - mahalanobispp
     - vim
@@ -46,7 +46,7 @@ ood_methods:
     - mah_mindist
     - rmd
     - knn
-    - cqs
+    - card
     - lar
     - mahalanobispp
     - vim

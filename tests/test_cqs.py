@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from maf07.methods.cqs import CQSDetector
+from maf07.methods.card import CARDDetector
 
 
 def test_cqs_scores_class_conditional_off_manifold_samples() -> None:
@@ -20,7 +20,7 @@ def test_cqs_scores_class_conditional_off_manifold_samples() -> None:
     ])
     eval_x = np.vstack([id_x, ood_x])
     logits = np.column_stack([-np.linalg.norm(eval_x + 2.0, axis=1), -np.linalg.norm(eval_x - 2.0, axis=1)])
-    detector = CQSDetector(k=5, topq=2, normalize=False).fit(train_x, train_y, z_cal=val_x, y_cal=val_y)
+    detector = CARDDetector(k=5, topq=2, normalize=False).fit(train_x, train_y, z_cal=val_x, y_cal=val_y)
     ood_scores = detector.score_samples(eval_x, logits)
     id_scores = detector.id_scores(eval_x, logits)
     assert ood_scores.shape == (80,)

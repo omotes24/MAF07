@@ -14,7 +14,12 @@ from .config import load_yaml, resolve_path
 
 
 def _stable_job_id(row: dict[str, object]) -> str:
-    payload = json.dumps(row, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
+    stable_row = dict(row)
+    # CARD is the renamed CQS method. Hash with the old method name so existing
+    # completed CQS jobs remain valid after the rename.
+    if stable_row.get("method") == "card":
+        stable_row["method"] = "cqs"
+    payload = json.dumps(stable_row, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
     return hashlib.sha1(payload.encode("utf-8")).hexdigest()
 
 
