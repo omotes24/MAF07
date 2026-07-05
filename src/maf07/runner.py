@@ -212,6 +212,9 @@ def _lantern_score(
     val_logits: np.ndarray | None = None,
     eval_logits: np.ndarray | None = None,
 ) -> np.ndarray:
+    if os.environ.get("MAF07_LANTERN_USE_LOGITS", "1") == "0":
+        detector = lantern_from_env().fit(train_x, train_y, z_cal=val_x, y_cal=val_y)
+        return detector.id_scores(eval_x)
     if train_logits is None or val_logits is None or eval_logits is None:
         train_logits, val_logits, eval_logits = _split_logits(train_x, train_y, val_x, eval_x)
     detector = lantern_from_env().fit(
