@@ -16,6 +16,8 @@ ood_methods:
     - mah_mindist
     - rmd
     - knn
+    - lar
+    - lantern
     - mahalanobispp
     - vim
     - react
@@ -44,6 +46,8 @@ ood_methods:
     - mah_mindist
     - rmd
     - knn
+    - lar
+    - lantern
     - mahalanobispp
     - vim
     - react
@@ -109,4 +113,3 @@ maf_ablation:
     - gini
     - renyi_entropy
     - topk_distance_entropy
-

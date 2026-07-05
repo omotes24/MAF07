@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 from maf07.jobs import append_csv_rows, audit_coverage, generate_expected_jobs
-from maf07.runner import _job_shard, _selected_backbones_from_env
+from maf07.runner import _job_shard, _selected_backbones_from_env, _selected_methods_from_env
 
 
 def test_expected_jobs_include_all_ood_split_settings() -> None:
@@ -60,3 +60,8 @@ def test_backbone_filter_env_accepts_commas_and_spaces(monkeypatch) -> None:
         "dinov2_vitl14",
         "openai_clip_vitb16",
     }
+
+
+def test_method_filter_env_accepts_commas_and_spaces(monkeypatch) -> None:
+    monkeypatch.setenv("MAF07_METHODS", "lantern, lar knn")
+    assert _selected_methods_from_env() == {"lantern", "lar", "knn"}

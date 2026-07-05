@@ -32,6 +32,8 @@ from .methods.baselines_distance import (
 )
 from .methods.baselines_logit import gradnorm, kl_matching
 from .methods.baselines_vlm import clip_text_energy, clip_zero_shot_msp, mcm_score, tip_adapter_score
+from .methods.lar import lar_from_env
+from .methods.lantern import LANTERNDetector
 from .methods.maf import MAFScorer, distance_variant_score, maf_fusion
 from .splits import make_ood_eval_frame
 
@@ -54,6 +56,9 @@ def _pending_jobs(kind: str, protocol: str | None = None) -> pd.DataFrame:
     backbone_filter = _selected_backbones_from_env()
     if backbone_filter is not None:
         jobs = jobs[jobs["backbone"].astype(str).isin(backbone_filter)]
+    method_filter = _selected_methods_from_env()
+    if method_filter is not None and "method" in jobs:
+        jobs = jobs[jobs["method"].astype(str).isin(method_filter)]
     preferred_order = [
         "backbone",
         "seed",
@@ -73,6 +78,14 @@ def _selected_backbones_from_env() -> set[str] | None:
     if not raw:
         return None
     values = {item.strip() for chunk in raw.split(",") for item in chunk.split() if item.strip()}
+    return values or None
+
+
+def _selected_methods_from_env() -> set[str] | None:
+    raw = os.environ.get("MAF07_METHODS") or os.environ.get("MAF07_METHOD_FILTER")
+    if not raw:
+        return None
+    values = {item.strip().lower() for chunk in raw.split(",") for item in chunk.split() if item.strip()}
     return values or None
 
 
@@ -117,6 +130,19 @@ def _logit_training(
     train_logits = fit_closed_head("linear_probe", train_x, train_y, train_x)
     by_class = {int(c): train_logits[train_y == c] for c in sorted(np.unique(train_y))}
     return logits, by_class
+
+
+def _split_logits(
+    train_x: np.ndarray,
+    train_y: np.ndarray,
+    val_x: np.ndarray,
+    eval_x: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    n_train = len(train_x)
+    n_val = len(val_x)
+    all_x = np.vstack([train_x, val_x, eval_x])
+    logits, _ = _logit_training(train_x, train_y, all_x)
+    return logits[:n_train], logits[n_train : n_train + n_val], logits[n_train + n_val :]
 
 
 def _torch_ridge_logits(
@@ -175,6 +201,30 @@ def _openmax_score(train_x: np.ndarray, train_y: np.ndarray, test_x: np.ndarray)
     return adjusted
 
 
+def _lantern_score(
+    train_x: np.ndarray,
+    train_y: np.ndarray,
+    val_x: np.ndarray,
+    val_y: np.ndarray,
+    eval_x: np.ndarray,
+    *,
+    train_logits: np.ndarray | None = None,
+    val_logits: np.ndarray | None = None,
+    eval_logits: np.ndarray | None = None,
+) -> np.ndarray:
+    if train_logits is None or val_logits is None or eval_logits is None:
+        train_logits, val_logits, eval_logits = _split_logits(train_x, train_y, val_x, eval_x)
+    detector = LANTERNDetector().fit(
+        train_x,
+        train_y,
+        logits_train=train_logits,
+        z_cal=val_x,
+        y_cal=val_y,
+        logits_cal=val_logits,
+    )
+    return detector.id_scores(eval_x, eval_logits)
+
+
 def _completed_rows(jobs: list[pd.Series], artifacts: list[str]) -> pd.DataFrame:
     rows: list[dict[str, object]] = []
     for job, artifact in zip(jobs, artifacts, strict=True):
@@ -218,6 +268,20 @@ def _score_method(
         return rmd_score(train_x, train_y, eval_x)
     if method == "knn":
         return knn_score(train_x, eval_x)
+    if method == "lar":
+        return lar_from_env().fit(train_x).id_scores(eval_x)
+    if method == "lantern":
+        train_logits, val_logits, eval_logits = _split_logits(train_x, train_y, val_x, eval_x)
+        return _lantern_score(
+            train_x,
+            train_y,
+            val_x,
+            val_y,
+            eval_x,
+            train_logits=train_logits,
+            val_logits=val_logits,
+            eval_logits=eval_logits,
+        )
     if method == "mahalanobispp":
         return mahalanobispp_score(train_x, train_y, val_x, eval_x)
     if method == "vim":
@@ -296,6 +360,32 @@ def _score_ood_group_method(
         if "knn" not in cache:
             cache["knn"] = knn_score(train_x, eval_x)
         return cache["knn"]
+    if method == "lar":
+        if "lar" not in cache:
+            cache["lar"] = lar_from_env().fit(train_x).id_scores(eval_x)
+        return cache["lar"]
+    if method == "lantern":
+        if "lantern" not in cache:
+            if "split_logits" not in cache:
+                train_logits, val_logits, eval_logits = _split_logits(train_x, train_y, val_x, eval_x)
+                cache["split_logits"] = (train_logits, val_logits, eval_logits)
+                cache["eval_logits"] = eval_logits
+                cache["train_logits_by_class"] = {
+                    int(c): train_logits[train_y == c] for c in sorted(np.unique(train_y))
+                }
+            else:
+                train_logits, val_logits, eval_logits = cache["split_logits"]
+            cache["lantern"] = _lantern_score(
+                train_x,
+                train_y,
+                val_x,
+                val_y,
+                eval_x,
+                train_logits=train_logits,
+                val_logits=val_logits,
+                eval_logits=eval_logits,
+            )
+        return cache["lantern"]
     if method == "mahalanobispp":
         if "mahalanobispp" not in cache:
             cache["mahalanobispp"] = mahalanobispp_score(train_x, train_y, val_x, eval_x)
