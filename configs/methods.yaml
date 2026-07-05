@@ -16,6 +16,7 @@ ood_methods:
     - mah_mindist
     - rmd
     - knn
+    - cqs
     - lar
     - lantern
     - mahalanobispp
@@ -46,6 +47,7 @@ ood_methods:
     - mah_mindist
     - rmd
     - knn
+    - cqs
     - lar
     - lantern
     - mahalanobispp
