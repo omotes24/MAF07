@@ -18,7 +18,6 @@ ood_methods:
     - knn
     - cqs
     - lar
-    - psm
     - mahalanobispp
     - vim
     - react
@@ -49,7 +48,6 @@ ood_methods:
     - knn
     - cqs
     - lar
-    - psm
     - mahalanobispp
     - vim
     - react
