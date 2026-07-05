@@ -228,6 +228,36 @@ class LANTERNDetector:
             score += float(self.beta_margin) * d_margin
         return float(score)
 
+    def _raw_scores_batch(
+        self,
+        x: np.ndarray,
+        logits: np.ndarray | None,
+        class_id: int,
+        patch: dict[str, object],
+    ) -> np.ndarray:
+        mu = np.asarray(patch["mu"], dtype=np.float64)
+        basis = np.asarray(patch["basis"], dtype=np.float64)
+        eig = np.asarray(patch["eig"], dtype=np.float64)
+        delta = x - mu[None, :]
+        if basis.shape[1] > 0:
+            coords = delta @ basis
+            residual = delta - coords @ basis.T
+            eig_mean = float(np.mean(eig)) if len(eig) else 1.0
+            denom = eig + float(self.shrink) * eig_mean + self.eps
+            d_tan = np.sum((coords * coords) / denom[None, :], axis=1) / max(1, len(eig))
+        else:
+            residual = delta
+            d_tan = np.zeros(len(x), dtype=np.float64)
+
+        d_perp = np.sum(residual * residual, axis=1) / (float(patch["normal_scale"]) + self.eps)
+        score = d_perp + float(self.alpha_tan) * d_tan
+        if logits is not None and patch.get("margin_floor") is not None:
+            margins = self._margin(logits, class_id)
+            deficit = np.maximum(0.0, float(patch["margin_floor"]) - margins)
+            d_margin = (deficit / (float(patch["margin_scale"]) + self.eps)) ** 2
+            score = score + float(self.beta_margin) * d_margin
+        return np.asarray(score, dtype=np.float64)
+
     def _nearest_patch_indices(self, class_id: int, z: np.ndarray, n_neighbors: int | None = None) -> np.ndarray:
         patches = self.patches_[class_id]
         k = min(int(n_neighbors or self.candidate_patches), len(patches))
@@ -239,6 +269,11 @@ class LANTERNDetector:
         tail_count = len(cal_scores) - idx
         return float((tail_count + 1.0) / (len(cal_scores) + 1.0))
 
+    def _p_values(self, raw_scores: np.ndarray, cal_scores: np.ndarray) -> np.ndarray:
+        idx = np.searchsorted(cal_scores, raw_scores, side="left")
+        tail_count = len(cal_scores) - idx
+        return (tail_count + 1.0) / (len(cal_scores) + 1.0)
+
     def score_samples(self, z: np.ndarray, logits: np.ndarray | None = None) -> np.ndarray:
         if not self.patches_:
             raise RuntimeError("LANTERNDetector is not fitted")
@@ -248,27 +283,39 @@ class LANTERNDetector:
         if self.normalize:
             x = _l2_normalize(x, self.eps)
         class_logits = _class_logits(logits)
-        scores = np.zeros(len(x), dtype=np.float64)
+        best_p = np.zeros(len(x), dtype=np.float64)
         all_classes = list(self.patches_.keys())
+        if class_logits is not None:
+            top = np.argsort(class_logits, axis=1)[:, ::-1][:, : min(int(self.topq), class_logits.shape[1])]
 
-        for i, sample in enumerate(x):
-            logits_i = class_logits[i] if class_logits is not None else None
-            if logits_i is not None:
-                top = np.argsort(logits_i)[::-1][: min(int(self.topq), len(logits_i))]
-                candidate_classes = [int(cls) for cls in top if int(cls) in self.patches_]
-                if not candidate_classes:
-                    candidate_classes = all_classes
+        for class_id in all_classes:
+            if class_logits is None:
+                sample_idx = np.arange(len(x))
             else:
-                candidate_classes = all_classes
+                sample_idx = np.where(np.any(top == int(class_id), axis=1))[0]
+                if len(sample_idx) == 0:
+                    continue
+            xs = x[sample_idx]
+            patch_count = len(self.patches_[class_id])
+            k = min(int(self.candidate_patches), patch_count)
+            _, patch_ids = self.nn_[class_id].kneighbors(xs, n_neighbors=k)
+            for patch_idx in np.unique(patch_ids):
+                row_mask = np.any(patch_ids == int(patch_idx), axis=1)
+                rows = sample_idx[row_mask]
+                patch = self.patches_[class_id][int(patch_idx)]
+                raw = self._raw_scores_batch(
+                    x[rows],
+                    class_logits[rows] if class_logits is not None else None,
+                    int(class_id),
+                    patch,
+                )
+                pvals = self._p_values(raw, np.asarray(patch["cal_scores"], dtype=np.float64))
+                best_p[rows] = np.maximum(best_p[rows], pvals)
 
-            best_p = 0.0
-            for class_id in candidate_classes:
-                for patch_idx in self._nearest_patch_indices(class_id, sample):
-                    patch = self.patches_[class_id][int(patch_idx)]
-                    raw = self._raw_score(sample, logits_i, class_id, patch)
-                    best_p = max(best_p, self._p_value(raw, np.asarray(patch["cal_scores"], dtype=np.float64)))
-            scores[i] = -np.log(max(best_p, self.eps))
-        return scores
+        missing = best_p <= 0.0
+        if np.any(missing):
+            best_p[missing] = self.eps
+        return -np.log(np.maximum(best_p, self.eps))
 
     def id_scores(self, z: np.ndarray, logits: np.ndarray | None = None) -> np.ndarray:
         return -self.score_samples(z, logits)
