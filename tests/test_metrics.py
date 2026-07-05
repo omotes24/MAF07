@@ -33,6 +33,13 @@ def test_binary_logits_are_promoted_to_two_columns() -> None:
     assert kl_matching(logits, train).shape == (3,)
 
 
+def test_gen_score_is_higher_for_confident_id_like_logits() -> None:
+    confident = np.array([[10.0, -10.0]])
+    uncertain = np.array([[0.0, 0.0]])
+    scores = logits_to_scores(np.vstack([confident, uncertain]), "gen")
+    assert scores[0] > scores[1]
+
+
 def test_oscr_uses_supported_trapezoid_integration() -> None:
     id_scores = np.array([0.9, 0.8, 0.7])
     ood_scores = np.array([0.3, 0.2, 0.1])

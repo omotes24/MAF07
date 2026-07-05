@@ -50,4 +50,4 @@ def kl_matching(logits: np.ndarray, train_logits_by_class: dict[int, np.ndarray]
 
 def gen(logits: np.ndarray, gamma: float = 0.1) -> np.ndarray:
     p = softmax(as_class_logits(logits), axis=1)
-    return np.sum(np.power(p + EPS, gamma), axis=1)
+    return -np.sum(np.power(p + EPS, gamma), axis=1)
