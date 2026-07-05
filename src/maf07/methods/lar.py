@@ -88,11 +88,10 @@ class LARScorer:
                 pos = eigvals > 1e-6
                 safe = eigvals.clamp_min(1e-6)
                 a2 = torch.where(pos, t * t / safe, torch.zeros_like(t))
-                lam = eigvals / float(denom)
                 in_term = torch.where(
                     pos,
-                    a2 / (lam + float(self.gamma)),
-                    torch.zeros_like(a2),
+                    t * t / (eigvals + float(denom) * float(self.gamma)),
+                    torch.zeros_like(t),
                 ).sum(dim=1)
                 residual = ((zc * zc).sum(dim=1) - a2.sum(dim=1)).clamp_min(0.0)
                 out[start:end] = (in_term + residual / float(self.beta)).float()

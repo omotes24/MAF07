@@ -36,6 +36,7 @@ from .methods.cqs import cqs_from_env
 from .methods.lar import lar_from_env
 from .methods.lantern import lantern_from_env
 from .methods.maf import MAFScorer, distance_variant_score, maf_fusion
+from .methods.psm import psm_from_env
 from .splits import make_ood_eval_frame
 
 
@@ -292,6 +293,8 @@ def _score_method(
         return _cqs_score(train_x, train_y, val_x, val_y, eval_x, eval_logits=eval_logits)
     if method == "lar":
         return lar_from_env().fit(train_x).id_scores(eval_x)
+    if method == "psm":
+        return psm_from_env().fit(train_x).id_scores(eval_x)
     if method == "lantern":
         train_logits, val_logits, eval_logits = _split_logits(train_x, train_y, val_x, eval_x)
         return _lantern_score(
@@ -399,6 +402,10 @@ def _score_ood_group_method(
         if "lar" not in cache:
             cache["lar"] = lar_from_env().fit(train_x).id_scores(eval_x)
         return cache["lar"]
+    if method == "psm":
+        if "psm" not in cache:
+            cache["psm"] = psm_from_env().fit(train_x).id_scores(eval_x)
+        return cache["psm"]
     if method == "lantern":
         if "lantern" not in cache:
             if "split_logits" not in cache:
