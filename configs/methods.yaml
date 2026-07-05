@@ -19,7 +19,6 @@ ood_methods:
     - cqs
     - lar
     - psm
-    - lantern
     - mahalanobispp
     - vim
     - react
@@ -51,7 +50,6 @@ ood_methods:
     - cqs
     - lar
     - psm
-    - lantern
     - mahalanobispp
     - vim
     - react
