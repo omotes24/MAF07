@@ -72,31 +72,36 @@ class PSMScorer:
         device = self.mean.device
         with torch.no_grad():
             q = torch.as_tensor(np.asarray(features, dtype=np.float64), device=device)
+            if q.shape[0] == 0:
+                return np.empty((0,), dtype=np.float64)
             if self.normalize:
                 q = self._l2_normalize(q)
             centered = q - self.mean
-            if self.Ut is not None and self.Ut.shape[1] > 0:
-                tail = ((centered @ self.Ut) ** 2 * self.tail_w).sum(dim=1)
-            else:
-                tail = torch.zeros(q.shape[0], dtype=torch.float64, device=device)
-
-            zr = (centered @ self.Ur).float()
             k = min(int(self.k), int(self.Xr.shape[0]))
-            dist = -2.0 * zr @ self.Xr.T + self.Xr_sq[None, :]
-            idx = torch.topk(dist, k, dim=1, largest=False).indices
-            local = torch.empty(q.shape[0], dtype=torch.float64, device=device)
+            batch_size = max(1, int(self.score_batch))
+            scores = torch.empty(q.shape[0], dtype=torch.float64, device=device)
             eye = torch.eye(self.Ur.shape[1], dtype=torch.float64, device=device) * float(self.gamma_local)
-            for start in range(0, q.shape[0], int(self.score_batch)):
-                end = min(start + int(self.score_batch), q.shape[0])
-                nb = self.Xr[idx[start:end]].double()
+            for start in range(0, q.shape[0], batch_size):
+                end = min(start + batch_size, q.shape[0])
+                centered_batch = centered[start:end]
+                if self.Ut is not None and self.Ut.shape[1] > 0:
+                    tail = ((centered_batch @ self.Ut) ** 2 * self.tail_w).sum(dim=1)
+                else:
+                    tail = torch.zeros(end - start, dtype=torch.float64, device=device)
+
+                zr = (centered_batch @ self.Ur).float()
+                dist = -2.0 * zr @ self.Xr.T + self.Xr_sq[None, :]
+                idx = torch.topk(dist, k, dim=1, largest=False).indices
+                nb = self.Xr[idx].double()
                 mu = nb.mean(dim=1, keepdim=True)
                 nb_centered = nb - mu
                 cov = torch.einsum("mkr,mks->mrs", nb_centered, nb_centered) / max(1, k - 1)
                 cov = cov + eye
-                zc = zr[start:end].double() - mu.squeeze(1)
+                zc = zr.double() - mu.squeeze(1)
                 solved = torch.linalg.solve(cov, zc.unsqueeze(-1)).squeeze(-1)
-                local[start:end] = torch.sum(zc * solved, dim=1)
-            return (local + tail).detach().cpu().numpy()
+                local = torch.sum(zc * solved, dim=1)
+                scores[start:end] = local + tail
+            return scores.detach().cpu().numpy()
 
     def id_scores(self, features: np.ndarray) -> np.ndarray:
         return -self.score_samples(features)
