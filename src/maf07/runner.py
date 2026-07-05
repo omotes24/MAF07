@@ -33,7 +33,7 @@ from .methods.baselines_distance import (
 from .methods.baselines_logit import gradnorm, kl_matching
 from .methods.baselines_vlm import clip_text_energy, clip_zero_shot_msp, mcm_score, tip_adapter_score
 from .methods.lar import lar_from_env
-from .methods.lantern import LANTERNDetector
+from .methods.lantern import lantern_from_env
 from .methods.maf import MAFScorer, distance_variant_score, maf_fusion
 from .splits import make_ood_eval_frame
 
@@ -214,7 +214,7 @@ def _lantern_score(
 ) -> np.ndarray:
     if train_logits is None or val_logits is None or eval_logits is None:
         train_logits, val_logits, eval_logits = _split_logits(train_x, train_y, val_x, eval_x)
-    detector = LANTERNDetector().fit(
+    detector = lantern_from_env().fit(
         train_x,
         train_y,
         logits_train=train_logits,

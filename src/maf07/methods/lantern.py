@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -319,3 +320,18 @@ class LANTERNDetector:
 
     def id_scores(self, z: np.ndarray, logits: np.ndarray | None = None) -> np.ndarray:
         return -self.score_samples(z, logits)
+
+
+def lantern_from_env() -> LANTERNDetector:
+    return LANTERNDetector(
+        n_per_patch=int(os.environ.get("MAF07_LANTERN_N_PER_PATCH", "200")),
+        max_patches_per_class=int(os.environ.get("MAF07_LANTERN_MAX_PATCHES", "16")),
+        min_patch_samples=int(os.environ.get("MAF07_LANTERN_MIN_PATCH_SAMPLES", "32")),
+        var_ratio=float(os.environ.get("MAF07_LANTERN_VAR_RATIO", "0.90")),
+        max_rank=int(os.environ.get("MAF07_LANTERN_MAX_RANK", "64")),
+        topq=int(os.environ.get("MAF07_LANTERN_TOPQ", "3")),
+        candidate_patches=int(os.environ.get("MAF07_LANTERN_CANDIDATE_PATCHES", "2")),
+        alpha_tan=float(os.environ.get("MAF07_LANTERN_ALPHA_TAN", "0.20")),
+        beta_margin=float(os.environ.get("MAF07_LANTERN_BETA_MARGIN", "0.50")),
+        normalize=os.environ.get("MAF07_LANTERN_NORMALIZE", "1") != "0",
+    )
