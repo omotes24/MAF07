@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -85,6 +86,8 @@ def extract_foreground_patch_cache(
     batch_size: int | None = None,
     device: str | None = None,
     resume: bool = True,
+    worker_index: int = 0,
+    worker_count: int = 1,
 ) -> ForegroundPatchCache:
     ecfg = load_yaml(experiments_config)
     runtime = ecfg.get("runtime", {})
@@ -97,45 +100,91 @@ def extract_foreground_patch_cache(
         foreground_ratio=foreground_ratio,
         max_patches=max_patches,
     )
-    if resume and paths.data_path.exists() and paths.metadata_path.exists() and paths.info_path.exists():
+    worker_index = int(worker_index)
+    worker_count = max(1, int(worker_count))
+    done_path = paths.data_path.with_name(f"{paths.data_path.name}.worker{worker_index}of{worker_count}.done")
+    if (
+        resume
+        and worker_count == 1
+        and paths.data_path.exists()
+        and paths.metadata_path.exists()
+        and paths.info_path.exists()
+    ):
+        return paths
+    if resume and worker_count > 1 and done_path.exists():
         return paths
 
     manifest = load_manifest(manifest_path)
     specs = load_backbone_specs(backbone_config)
     if backbone not in specs:
         raise KeyError(f"Unknown backbone: {backbone}")
+    rows = manifest[["image_id", "class_name", "path", "rel_path"]].copy()
+    image_paths = rows["path"].tolist()
+    paths.data_path.parent.mkdir(parents=True, exist_ok=True)
+
+    import torch
+
+    if worker_count == 1 or worker_index == 0:
+        runner = BackboneRunner(specs[backbone], device=device)
+        if runner.spec.family != "timm":
+            raise ValueError("Foreground patch extraction currently supports timm ViT backbones only")
+        if runner.model is None or runner.preprocess is None:
+            raise RuntimeError("Backbone is not loaded")
+        dev = device if device_available(device) else "cpu"
+
+        first_image = Image.open(image_paths[0]).convert("RGB")
+        first_batch = torch.stack([runner.preprocess(first_image)]).to(dev)
+        first_image.close()
+        with torch.no_grad():
+            first_out = runner.model.forward_features(first_batch)
+            first_cls, first_patches = _tokens_from_forward_features(
+                first_out,
+                int(getattr(runner.model, "num_prefix_tokens", 1)),
+            )
+            first_fg = _select_foreground_patches(first_cls, first_patches, foreground_ratio, max_patches)
+        n_images = len(rows)
+        n_patches = int(first_fg.shape[1])
+        dim = int(first_fg.shape[2])
+        data = np.memmap(paths.data_path, mode="w+", dtype=np.float16, shape=(n_images, n_patches, dim))
+        data.flush()
+        rows.to_csv(paths.metadata_path, index=False)
+        info = {
+            "backbone": backbone,
+            "dtype": "float16",
+            "shape": [n_images, n_patches, dim],
+            "foreground_ratio": float(foreground_ratio),
+            "max_patches": int(max_patches),
+        }
+        paths.info_path.write_text(json.dumps(info, indent=2, sort_keys=True), encoding="utf-8")
+        del data
+        del runner
+        if device_available(device):
+            torch.cuda.empty_cache()
+    else:
+        wait_start = time.time()
+        while not paths.info_path.exists():
+            if time.time() - wait_start > 1800:
+                raise TimeoutError(f"Timed out waiting for cache init: {paths.info_path}")
+            time.sleep(2)
+
+    info = json.loads(paths.info_path.read_text(encoding="utf-8"))
+    n_images, n_patches, dim = (int(v) for v in info["shape"])
+    data = np.memmap(paths.data_path, mode="r+", dtype=np.float16, shape=(n_images, n_patches, dim))
     runner = BackboneRunner(specs[backbone], device=device)
     if runner.spec.family != "timm":
         raise ValueError("Foreground patch extraction currently supports timm ViT backbones only")
     if runner.model is None or runner.preprocess is None:
         raise RuntimeError("Backbone is not loaded")
-
-    rows = manifest[["image_id", "class_name", "path", "rel_path"]].copy()
-    image_paths = rows["path"].tolist()
     dev = device if device_available(device) else "cpu"
-    paths.data_path.parent.mkdir(parents=True, exist_ok=True)
 
-    import torch
-
-    # Probe the first batch to determine selected patch count and feature dim.
-    first_image = Image.open(image_paths[0]).convert("RGB")
-    first_batch = torch.stack([runner.preprocess(first_image)]).to(dev)
-    first_image.close()
+    worker_positions = list(range(worker_index, len(image_paths), worker_count))
     with torch.no_grad():
-        first_out = runner.model.forward_features(first_batch)
-        first_cls, first_patches = _tokens_from_forward_features(
-            first_out,
-            int(getattr(runner.model, "num_prefix_tokens", 1)),
-        )
-        first_fg = _select_foreground_patches(first_cls, first_patches, foreground_ratio, max_patches)
-    n_images = len(rows)
-    n_patches = int(first_fg.shape[1])
-    dim = int(first_fg.shape[2])
-    data = np.memmap(paths.data_path, mode="w+", dtype=np.float16, shape=(n_images, n_patches, dim))
-
-    with torch.no_grad():
-        for start in tqdm(range(0, len(image_paths), batch_size), desc=f"patches:{backbone}"):
-            batch_paths = image_paths[start : start + batch_size]
+        for pos in tqdm(
+            range(0, len(worker_positions), batch_size),
+            desc=f"patches:{backbone}:w{worker_index}/{worker_count}",
+        ):
+            batch_indices = worker_positions[pos : pos + batch_size]
+            batch_paths = [image_paths[i] for i in batch_indices]
             images = [Image.open(path).convert("RGB") for path in batch_paths]
             batch = torch.stack([runner.preprocess(img) for img in images]).to(dev)
             for img in images:
@@ -143,19 +192,12 @@ def extract_foreground_patch_cache(
             out = runner.model.forward_features(batch)
             cls, patches = _tokens_from_forward_features(out, int(getattr(runner.model, "num_prefix_tokens", 1)))
             fg = _select_foreground_patches(cls, patches, foreground_ratio, max_patches)
-            data[start : start + len(batch_paths)] = fg.detach().cpu().to(torch.float16).numpy()
-            if start and start % max(batch_size * 64, 1) == 0:
+            data[np.asarray(batch_indices, dtype=int)] = fg.detach().cpu().to(torch.float16).numpy()
+            if pos and pos % max(batch_size * 64, 1) == 0:
                 data.flush()
     data.flush()
-    rows.to_csv(paths.metadata_path, index=False)
-    info = {
-        "backbone": backbone,
-        "dtype": "float16",
-        "shape": [n_images, n_patches, dim],
-        "foreground_ratio": float(foreground_ratio),
-        "max_patches": int(max_patches),
-    }
-    paths.info_path.write_text(json.dumps(info, indent=2, sort_keys=True), encoding="utf-8")
+    if worker_count > 1:
+        done_path.write_text("done\n", encoding="utf-8")
     load_foreground_patch_cache.cache_clear()
     return paths
 

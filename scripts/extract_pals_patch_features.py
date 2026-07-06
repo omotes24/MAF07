@@ -20,6 +20,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-patches", type=int, default=int(os.environ.get("MAF07_PALS_MAX_FOREGROUND_PATCHES", "128")))
     parser.add_argument("--batch-size", type=int, default=int(os.environ.get("MAF07_PALS_EXTRACT_BATCH", "4")))
     parser.add_argument("--device", default=os.environ.get("MAF07_PALS_EXTRACT_DEVICE", os.environ.get("MAF07_TORCH_DEVICE", "cuda")))
+    parser.add_argument("--worker-index", type=int, default=int(os.environ.get("MAF07_JOB_WORKER_INDEX", "0")))
+    parser.add_argument("--worker-count", type=int, default=int(os.environ.get("MAF07_JOB_WORKER_COUNT", "1")))
     parser.add_argument("--no-resume", action="store_true")
     args = parser.parse_args(argv)
 
@@ -31,6 +33,8 @@ def main(argv: list[str] | None = None) -> int:
             batch_size=args.batch_size,
             device=args.device,
             resume=not args.no_resume,
+            worker_index=args.worker_index,
+            worker_count=args.worker_count,
         )
         print(paths)
     return 0
