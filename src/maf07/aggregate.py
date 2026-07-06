@@ -16,10 +16,26 @@ def aggregate_scores(protocol: str = "fair") -> Path | None:
     paths = sorted(root.glob("*.parquet"))
     if not paths:
         return None
-    frames = [pd.read_parquet(path) for path in paths]
-    all_scores = pd.concat(frames, ignore_index=True)
     out.parent.mkdir(parents=True, exist_ok=True)
-    all_scores.to_parquet(out, index=False)
+    try:
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+    except ImportError:
+        frames = [pd.read_parquet(path) for path in paths]
+        pd.concat(frames, ignore_index=True).to_parquet(out, index=False)
+        return out
+
+    writer: pq.ParquetWriter | None = None
+    try:
+        for path in paths:
+            frame = pd.read_parquet(path)
+            table = pa.Table.from_pandas(frame, preserve_index=False)
+            if writer is None:
+                writer = pq.ParquetWriter(out, table.schema)
+            writer.write_table(table)
+    finally:
+        if writer is not None:
+            writer.close()
     return out
 
 
@@ -71,4 +87,3 @@ def make_tables() -> list[Path]:
             outputs.append(out)
     audit_coverage(strict=False)
     return outputs
-
