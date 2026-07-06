@@ -34,6 +34,7 @@ from .methods.baselines_logit import gradnorm, kl_matching
 from .methods.baselines_vlm import clip_text_energy, clip_zero_shot_msp, mcm_score, tip_adapter_score
 from .methods.card import card_from_env
 from .methods.cqs import cqs_from_env
+from .methods.csr import csr_from_env
 from .methods.lar import lar_from_env
 from .methods.lantern import lantern_from_env
 from .methods.maf import MAFScorer, distance_variant_score, maf_fusion
@@ -261,6 +262,21 @@ def _card_score(
     return detector.id_scores(eval_x, eval_logits)
 
 
+def _csr_score(
+    train_x: np.ndarray,
+    train_y: np.ndarray,
+    val_x: np.ndarray,
+    val_y: np.ndarray,
+    eval_x: np.ndarray,
+    *,
+    eval_logits: np.ndarray | None = None,
+) -> np.ndarray:
+    if eval_logits is None:
+        _, _, eval_logits = _split_logits(train_x, train_y, val_x, eval_x)
+    detector = csr_from_env().fit(train_x, train_y, z_cal=val_x, y_cal=val_y)
+    return detector.id_scores(eval_x, eval_logits)
+
+
 def _completed_rows(jobs: list[pd.Series], artifacts: list[str]) -> pd.DataFrame:
     rows: list[dict[str, object]] = []
     for job, artifact in zip(jobs, artifacts, strict=True):
@@ -307,6 +323,9 @@ def _score_method(
     if method == "card":
         _, _, eval_logits = _split_logits(train_x, train_y, val_x, eval_x)
         return _card_score(train_x, train_y, val_x, val_y, eval_x, eval_logits=eval_logits)
+    if method == "csr":
+        _, _, eval_logits = _split_logits(train_x, train_y, val_x, eval_x)
+        return _csr_score(train_x, train_y, val_x, val_y, eval_x, eval_logits=eval_logits)
     if method == "cqs":
         _, _, eval_logits = _split_logits(train_x, train_y, val_x, eval_x)
         return _cqs_score(train_x, train_y, val_x, val_y, eval_x, eval_logits=eval_logits)
@@ -417,6 +436,19 @@ def _score_ood_group_method(
                 _, _, eval_logits = cache["split_logits"]
             cache["card"] = _card_score(train_x, train_y, val_x, val_y, eval_x, eval_logits=eval_logits)
         return cache["card"]
+    if method == "csr":
+        if "csr" not in cache:
+            if "split_logits" not in cache:
+                train_logits, val_logits, eval_logits = _split_logits(train_x, train_y, val_x, eval_x)
+                cache["split_logits"] = (train_logits, val_logits, eval_logits)
+                cache["eval_logits"] = eval_logits
+                cache["train_logits_by_class"] = {
+                    int(c): train_logits[train_y == c] for c in sorted(np.unique(train_y))
+                }
+            else:
+                _, _, eval_logits = cache["split_logits"]
+            cache["csr"] = _csr_score(train_x, train_y, val_x, val_y, eval_x, eval_logits=eval_logits)
+        return cache["csr"]
     if method == "cqs":
         if "cqs" not in cache:
             if "split_logits" not in cache:
