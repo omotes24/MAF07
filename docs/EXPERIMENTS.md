@@ -88,6 +88,19 @@ export MAF07_METHODS=knn,card,msp,entropy,energy,maxlogit,mahalanobis,mah_mindis
 bash scripts/run_ood_fair.sh
 ```
 
+The full DINOv2 comparison list used by `configs/methods.yaml` is:
+
+```text
+msp, entropy, energy, maxlogit, mahalanobis, mah_mindist, rmd, knn, card,
+lar, mahalanobispp, vim, react, ashp, ashs, ashb, dice, gen, scale, nci,
+odin, gradnorm, openmax, kl_matching, mcm, clip_zeroshot_msp,
+clip_text_energy, tip_adapter
+```
+
+If the paper text lists the 4.4 baselines, it must include the CLIP-derived
+scores (`mcm`, `clip_zeroshot_msp`, `clip_text_energy`) and `tip_adapter`, or
+those rows should be removed from the table.
+
 Oracle runs are separate and should not be reported as deployable main results:
 
 ```bash
@@ -131,7 +144,121 @@ results/quick/diagcard_full_huber_raw_summary_by_id_size.csv
 
 Those legacy files are exactly RSN.
 
-## 7. Archived result tables
+## 7. Additional analyses
+
+### PSM id-size sweep
+
+PSM is implemented in `src/maf07/methods/psm.py`, but it is not part of the
+historical `coverage_report.json` job list. Run it as a quick sweep:
+
+```bash
+export MAF07_BACKBONES=dinov2_vitb14,dinov2_vitl14
+export MAF07_SEEDS=0,1,2
+export MAF07_PSM_WORKERS=4
+export MAF07_PSM_CUDA_DEVICES="0 1 2 3"
+bash scripts/run_psm_full.sh
+```
+
+Outputs:
+
+```text
+results/quick/psm_full_results.csv
+results/quick/psm_full_summary_by_id_size.csv
+```
+
+### KNN oracle completion
+
+The archived KNN-oracle baseline is incomplete for `id_size=6,7`. It can be
+completed without changing the expected-job definition:
+
+```bash
+export MAF07_BACKBONES=dinov2_vitb14,dinov2_vitl14
+export MAF07_METHODS=knn
+bash scripts/run_ood_oracle.sh
+python -m maf07.cli aggregate
+python -m maf07.cli audit-coverage
+```
+
+### vitb14-only consistency table
+
+Generate the single-backbone RSN-vs-baseline table:
+
+```bash
+python scripts/export_rsn_vitb14_comparison.py \
+  --rsn-summary results/quick/diagcard_full_huber_raw_summary_by_id_size.csv \
+  --baseline-summary results/ood/fair/summary_by_setting.csv \
+  --output results/analysis/rsn_vitb14_vs_knn_card_by_id_size.csv
+```
+
+### per-OOD-class evaluation
+
+For methods with sample-level score parquet files from the main harness:
+
+```bash
+python scripts/analyze_score_per_ood_class.py \
+  --input results/ood/fair/scores/jobs \
+  --output results/analysis/per_ood_class_fair_results.csv \
+  --summary-output results/analysis/per_ood_class_fair_summary.csv
+```
+
+For quick-method comparisons that need RSN included:
+
+```bash
+python scripts/run_quick_per_ood_class.py \
+  --id-size 2 \
+  --protocol fair \
+  --methods rsn,knn,card,psm \
+  --output results/analysis/per_ood_class_quick_fair.csv \
+  --summary-output results/analysis/per_ood_class_quick_fair_summary.csv
+```
+
+Run the command for each `id_size` required in the paper.
+
+### Shared-shape validation
+
+Directly test the RSN shared-shape assumption by comparing class-wise
+validation distance distributions with pairwise KS statistics:
+
+```bash
+python scripts/analyze_rsn_ks.py \
+  --protocol fair \
+  --id-sizes 2,3,4,5,6,7 \
+  --output results/analysis/rsn_validation_ks_summary.csv \
+  --pairs-output results/analysis/rsn_validation_ks_pairs.csv
+```
+
+### DiagCARD 2x2 ablation
+
+Complete the calibration x Huber ablation over all `id_size` values:
+
+```bash
+export MAF07_BACKBONES=dinov2_vitb14,dinov2_vitl14
+export MAF07_SEEDS=0,1,2
+export MAF07_DIAGCARD_WORKERS=4
+export MAF07_DIAGCARD_VARIANTS=diag_calib,diag_huber_calib,diag_raw,diag_huber_raw
+bash scripts/run_diagcard_full.sh
+```
+
+Outputs:
+
+```text
+results/quick/diagcard_full_2x2_results.csv
+results/quick/diagcard_full_2x2_summary_by_id_size.csv
+```
+
+### Multiple-comparison correction
+
+Generate paired RSN-vs-KNN/CARD tests by `id_size`, with Bonferroni and Holm
+corrections over the produced family of tests:
+
+```bash
+python scripts/compare_rsn_with_correction.py \
+  --rsn-results results/quick/diagcard_full_huber_raw_results.csv \
+  --baseline-results results/ood/fair/summary_by_setting.csv \
+  --output results/analysis/rsn_vs_baselines_corrected_stats.csv
+```
+
+## 8. Archived result tables
 
 The following analysis tables were generated from completed Hades outputs and
 copied to the local working artifact directory:
@@ -148,7 +275,7 @@ copied to the local working artifact directory:
 These CSVs are not committed because `results/**` is ignored. The key result
 values are copied into `README.md` and `docs/RSN.md`.
 
-## 8. Coverage-based full harness
+## 9. Coverage-based full harness
 
 The original full harness remains available:
 
