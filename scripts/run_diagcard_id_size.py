@@ -88,21 +88,30 @@ def _summarize(results_path: Path, summary_path: Path) -> None:
         return
     df = df.drop_duplicates("job_id", keep="last")
     rows = []
-    for scope, sub in df.groupby("protocol", dropna=False):
-        grouped = sub.groupby(["backbone", "method", "variant"], dropna=False).agg(
-            n=("AUROC", "size"),
-            AUROC_mean=("AUROC", "mean"),
-            FPR95_mean=("FPR95", "mean"),
-            AUPR_OUT_mean=("AUPR_OUT", "mean"),
-        ).reset_index()
-        allg = sub.groupby(["method", "variant"], dropna=False).agg(
-            n=("AUROC", "size"),
-            AUROC_mean=("AUROC", "mean"),
-            FPR95_mean=("FPR95", "mean"),
-            AUPR_OUT_mean=("AUPR_OUT", "mean"),
-        ).reset_index()
+    for (scope, id_size), sub in df.groupby(["protocol", "id_size"], dropna=False):
+        grouped = (
+            sub.groupby(["backbone", "method", "variant"], dropna=False)
+            .agg(
+                n=("AUROC", "size"),
+                AUROC_mean=("AUROC", "mean"),
+                FPR95_mean=("FPR95", "mean"),
+                AUPR_OUT_mean=("AUPR_OUT", "mean"),
+            )
+            .reset_index()
+        )
+        allg = (
+            sub.groupby(["method", "variant"], dropna=False)
+            .agg(
+                n=("AUROC", "size"),
+                AUROC_mean=("AUROC", "mean"),
+                FPR95_mean=("FPR95", "mean"),
+                AUPR_OUT_mean=("AUPR_OUT", "mean"),
+            )
+            .reset_index()
+        )
         allg.insert(0, "backbone", "ALL")
         out = pd.concat([grouped, allg], ignore_index=True)
+        out.insert(0, "id_size", int(id_size))
         out.insert(0, "scope", scope)
         rows.extend(out.to_dict("records"))
     summary = pd.DataFrame(rows)
@@ -110,7 +119,7 @@ def _summarize(results_path: Path, summary_path: Path) -> None:
         if col in summary:
             summary[col] = summary[col].round(6)
     summary_path.parent.mkdir(parents=True, exist_ok=True)
-    summary.to_csv(summary_path, index=False)
+    summary.sort_values(["scope", "id_size", "backbone", "variant"]).to_csv(summary_path, index=False)
 
 
 def main(argv: list[str] | None = None) -> int:
