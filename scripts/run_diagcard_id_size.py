@@ -20,7 +20,7 @@ from maf07.runner import _load_split
 from maf07.splits import make_ood_eval_frame
 
 
-DEFAULT_VARIANTS = "diag_calib,diag_huber_calib,diag_raw"
+DEFAULT_VARIANTS = "diag_calib,diag_huber_calib,diag_raw,diag_huber_raw"
 
 
 def _parse_csv_values(raw: str | None, default: list[str]) -> list[str]:
@@ -36,6 +36,8 @@ def _variant_config(name: str) -> tuple[float | None, bool]:
         return float(os.environ.get("MAF07_DIAGCARD_DELTA", "1.345")), True
     if name == "diag_raw":
         return None, False
+    if name == "diag_huber_raw":
+        return float(os.environ.get("MAF07_DIAGCARD_DELTA", "1.345")), False
     raise ValueError(f"Unknown DiagCARD variant: {name}")
 
 
