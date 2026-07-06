@@ -4,7 +4,8 @@ protocols:
   - fair
   - oracle
 default_backbone_tiers:
-  - tier0
+  - dinov2
+run_ablation: false
 feature_cache_dir: results/features
 job_dir: results/coverage
 closed_output: results/closed/results.csv

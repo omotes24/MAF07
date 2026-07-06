@@ -118,22 +118,23 @@ def generate_expected_jobs(
                 }
             )
 
-    for seed, backbone, variant, id_set in itertools.product(
-        seeds, backbones, ablation_variants(mcfg), id_sets
-    ):
-        rows.append(
-            {
-                "job_kind": "ablation",
-                "protocol": "fair",
-                "seed": seed,
-                "backbone": backbone,
-                "method": "maf",
-                "variant": variant,
-                "id_size": len(id_set),
-                "id_set": _id_set_text(id_set),
-                "ood_set": _ood_set_text(classes, id_set),
-            }
-        )
+    if bool(ecfg.get("run_ablation", True)):
+        for seed, backbone, variant, id_set in itertools.product(
+            seeds, backbones, ablation_variants(mcfg), id_sets
+        ):
+            rows.append(
+                {
+                    "job_kind": "ablation",
+                    "protocol": "fair",
+                    "seed": seed,
+                    "backbone": backbone,
+                    "method": "maf",
+                    "variant": variant,
+                    "id_size": len(id_set),
+                    "id_set": _id_set_text(id_set),
+                    "ood_set": _ood_set_text(classes, id_set),
+                }
+            )
 
     df = pd.DataFrame(rows)
     df["job_id"] = [_stable_job_id(r) for r in df.to_dict(orient="records")]

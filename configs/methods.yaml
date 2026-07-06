@@ -7,7 +7,6 @@ closed_methods:
   - clip_prompt_ensemble
 ood_methods:
   fair:
-    - maf
     - msp
     - entropy
     - energy
@@ -37,7 +36,6 @@ ood_methods:
     - clip_text_energy
     - tip_adapter
   oracle:
-    - maf
     - msp
     - entropy
     - energy

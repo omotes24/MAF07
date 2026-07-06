@@ -47,6 +47,17 @@ tier0:
     model_name: resnet50.a1_in1k
     image_size: 224
     feature_dim: null
+dinov2:
+  - name: dinov2_vitb14
+    family: timm
+    model_name: vit_base_patch14_dinov2.lvd142m
+    image_size: 518
+    feature_dim: null
+  - name: dinov2_vitl14
+    family: timm
+    model_name: vit_large_patch14_dinov2.lvd142m
+    image_size: 518
+    feature_dim: null
 tier1:
   - name: dinov2_vits14
     family: timm
