@@ -84,11 +84,17 @@ def main() -> int:
     parser.add_argument("--batch-size", type=int, default=192)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--worker-index", type=int, default=int(os.environ.get("MAF07_JOB_WORKER_INDEX", "0")))
+    parser.add_argument("--worker-count", type=int, default=int(os.environ.get("MAF07_JOB_WORKER_COUNT", "1")))
     args = parser.parse_args()
 
     manifest = pd.read_csv(args.manifest)
     if args.limit is not None:
         manifest = manifest.head(args.limit).copy()
+    if args.worker_count > 1:
+        if args.worker_index < 0 or args.worker_index >= args.worker_count:
+            raise ValueError("--worker-index must be in [0, --worker-count)")
+        manifest = manifest.iloc[args.worker_index :: args.worker_count].reset_index(drop=True)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     existing = _load_existing(output)
