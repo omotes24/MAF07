@@ -1,12 +1,21 @@
 # Known non-animal / wrong-content images excluded from paper figures and
 # optional cleaned manifests. Paths are relative to the CAT dataset root.
+jaguar/jaguar_01678.jpg
 jaguar/jaguar_02189.jpg
+jaguar/jaguar_03200.jpg
 jaguar/jaguar_04856.jpg
 jaguar/jaguar_08847.jpg
 leopard/leopard_03053.jpg
+leopard/leopard_05496.jpg
 leopard/leopard_08072.jpg
+ocelot/ocelot_01010.jpg
+tiger/tiger_08996.jpg
 tiger/tiger_13722.jpg
 tiger/tiger_13974.jpg
+tiger/tiger_13977.jpg
 tiger/tiger_14952.jpg
+tiger/tiger_15043.jpg
+tiger/tiger_15551.jpg
+tiger/tiger_17592.jpg
 tiger/tiger_17593.jpg
 tiger/tiger_18544.jpg
