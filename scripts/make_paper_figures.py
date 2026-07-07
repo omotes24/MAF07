@@ -4,8 +4,10 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import sys
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -116,6 +118,60 @@ def _image_quality_score(path: str | Path) -> float:
     if saturation < 0.08:
         penalty += (0.08 - saturation) * 3.0
     return 0.50 * saturation + 0.35 * contrast + 0.15 * (1.0 - abs(brightness - 0.50)) - penalty
+
+
+@lru_cache(maxsize=1)
+def _imagenet_cat_resources():
+    checkpoint = Path(os.environ.get("MAF07_IMAGENET_RESNET50", "/home/omote/OODD/checkpoints/resnet50-0676ba61.pth"))
+    if not checkpoint.exists():
+        return None
+    try:
+        import torch
+        from torchvision.models import ResNet50_Weights, resnet50
+
+        weights = ResNet50_Weights.DEFAULT
+        model = resnet50(weights=None)
+        try:
+            state = torch.load(checkpoint, map_location="cpu", weights_only=True)
+        except TypeError:
+            state = torch.load(checkpoint, map_location="cpu")
+        model.load_state_dict(state)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model.to(device).eval()
+        labels = weights.meta["categories"]
+        cat_terms = ("cat", "tiger", "lion", "leopard", "jaguar", "cheetah", "cougar", "lynx", "snow leopard")
+        cat_idx = torch.as_tensor(
+            [i for i, label in enumerate(labels) if any(term in label.lower() for term in cat_terms)],
+            device=device,
+        )
+        return model, weights.transforms(), cat_idx, device
+    except Exception:
+        return None
+
+
+@lru_cache(maxsize=4096)
+def _imagenet_cat_score(path: str) -> float | None:
+    resources = _imagenet_cat_resources()
+    if resources is None:
+        return None
+    model, preprocess, cat_idx, device = resources
+    try:
+        import torch
+
+        img = Image.open(path).convert("RGB")
+        x = preprocess(img).unsqueeze(0).to(device)
+        with torch.no_grad():
+            prob = model(x).softmax(1).squeeze(0)
+        return float(prob.index_select(0, cat_idx).sum().detach().cpu())
+    except Exception:
+        return None
+
+
+def _species_visible_score(path: str | Path) -> float:
+    cat_score = _imagenet_cat_score(str(path))
+    if cat_score is None:
+        return _image_quality_score(path)
+    return cat_score
 
 
 def _sample_rows(manifest: pd.DataFrame, split: pd.DataFrame | None = None) -> dict[str, pd.Series]:
@@ -640,7 +696,13 @@ def figure_failure_cases(out_dir: Path, ctx: ScoreContext) -> list[Path]:
         ordered = candidates[np.argsort(values[candidates])]
         if reverse:
             ordered = ordered[::-1]
-        good = [int(i) for i in ordered[:160] if _image_quality_score(ctx.rows.iloc[int(i)]["path"]) > 0.08]
+        good = [
+            int(i)
+            for i in ordered[:1200]
+            if _species_visible_score(ctx.rows.iloc[int(i)]["path"]) >= 0.10
+        ]
+        if len(good) < 4:
+            good = [int(i) for i in ordered[:160] if _image_quality_score(ctx.rows.iloc[int(i)]["path"]) > 0.08]
         if len(good) < 4:
             good = [int(i) for i in ordered[:4]]
         return np.asarray(good[:4], dtype=int)
