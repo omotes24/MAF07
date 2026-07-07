@@ -94,6 +94,30 @@ def _load_image(path: str | Path, size: int | tuple[int, int] = 224) -> Image.Im
         return ImageOps.contain(img, size, method=Image.Resampling.LANCZOS)
 
 
+def _image_quality_score(path: str | Path) -> float:
+    try:
+        with Image.open(path) as img:
+            img = ImageOps.contain(img.convert("RGB"), (96, 96), method=Image.Resampling.BILINEAR)
+            arr = np.asarray(img, dtype=np.float32) / 255.0
+    except Exception:
+        return -1.0
+    if arr.size == 0:
+        return -1.0
+    brightness = float(arr.mean())
+    contrast = float(arr.std())
+    mx = arr.max(axis=2)
+    mn = arr.min(axis=2)
+    saturation = float(np.mean((mx - mn) / np.maximum(mx, 1e-3)))
+    penalty = 0.0
+    if brightness < 0.18:
+        penalty += (0.18 - brightness) * 2.5
+    if brightness > 0.86:
+        penalty += (brightness - 0.86) * 2.0
+    if saturation < 0.08:
+        penalty += (0.08 - saturation) * 3.0
+    return 0.50 * saturation + 0.35 * contrast + 0.15 * (1.0 - abs(brightness - 0.50)) - penalty
+
+
 def _sample_rows(manifest: pd.DataFrame, split: pd.DataFrame | None = None) -> dict[str, pd.Series]:
     source = split if split is not None else manifest
     rows: dict[str, pd.Series] = {}
@@ -103,8 +127,14 @@ def _sample_rows(manifest: pd.DataFrame, split: pd.DataFrame | None = None) -> d
             sub = manifest[(manifest["class_name"] == cls) & manifest["path"].map(lambda p: Path(str(p)).exists())]
         if sub.empty:
             continue
-        # A deterministic mid-list sample avoids repeatedly using filename 00001.
-        rows[cls] = sub.sort_values("image_id").iloc[len(sub) // 2]
+        sub = sub.sort_values("image_id").reset_index(drop=True)
+        if len(sub) > 360:
+            take = np.linspace(0, len(sub) - 1, 360, dtype=int)
+            candidates = sub.iloc[take].copy()
+        else:
+            candidates = sub.copy()
+        scores = candidates["path"].map(_image_quality_score).to_numpy()
+        rows[cls] = candidates.iloc[int(np.argmax(scores))]
     return rows
 
 
@@ -523,7 +553,12 @@ def figure_nearest_neighbor_panel(out_dir: Path, ctx: ScoreContext) -> list[Path
     if len(candidates) == 0:
         candidates = np.flatnonzero(is_ood & near)
     score_gap = (ctx.knn_scores[candidates] - ctx.knn_threshold) + (ctx.rsn_threshold - ctx.rsn_scores[candidates])
-    qidx = int(candidates[np.argmax(score_gap)])
+    order = candidates[np.argsort(-score_gap)]
+    qidx = int(order[0])
+    for idx in order[:80]:
+        if _image_quality_score(ctx.rows.iloc[int(idx)]["path"]) > 0.08:
+            qidx = int(idx)
+            break
     qrow = ctx.rows.iloc[qidx]
     q = ctx.eval_x[qidx]
     knn_idx = _cosine_neighbors(ctx.train_x, q, 5)
@@ -575,8 +610,18 @@ def figure_failure_cases(out_dir: Path, ctx: ScoreContext) -> list[Path]:
         false_accept = np.flatnonzero(is_ood & near)
     if len(false_reject) < 4:
         false_reject = np.flatnonzero(is_id)
-    false_accept = false_accept[np.argsort(-ctx.rsn_scores[false_accept])[:4]]
-    false_reject = false_reject[np.argsort(ctx.rsn_scores[false_reject])[:4]]
+
+    def choose(candidates: np.ndarray, values: np.ndarray, reverse: bool) -> np.ndarray:
+        ordered = candidates[np.argsort(values[candidates])]
+        if reverse:
+            ordered = ordered[::-1]
+        good = [int(i) for i in ordered[:160] if _image_quality_score(ctx.rows.iloc[int(i)]["path"]) > 0.08]
+        if len(good) < 4:
+            good = [int(i) for i in ordered[:4]]
+        return np.asarray(good[:4], dtype=int)
+
+    false_accept = choose(false_accept, ctx.rsn_scores, reverse=True)
+    false_reject = choose(false_reject, ctx.rsn_scores, reverse=False)
 
     fig, axes = plt.subplots(2, 4, figsize=(11, 6))
     for ax, idx in zip(axes[0], false_accept):
