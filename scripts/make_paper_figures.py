@@ -699,7 +699,7 @@ def figure_failure_cases(out_dir: Path, ctx: ScoreContext) -> list[Path]:
         good = [
             int(i)
             for i in ordered[:1200]
-            if _species_visible_score(ctx.rows.iloc[int(i)]["path"]) >= 0.10
+            if _species_visible_score(ctx.rows.iloc[int(i)]["path"]) >= 0.20
         ]
         if len(good) < 4:
             good = [int(i) for i in ordered[:160] if _image_quality_score(ctx.rows.iloc[int(i)]["path"]) > 0.08]

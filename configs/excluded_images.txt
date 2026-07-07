@@ -4,6 +4,7 @@ jaguar/jaguar_01678.jpg
 jaguar/jaguar_02189.jpg
 jaguar/jaguar_03193.jpg
 jaguar/jaguar_03200.jpg
+jaguar/jaguar_03224.jpg
 jaguar/jaguar_03239.jpg
 jaguar/jaguar_04856.jpg
 jaguar/jaguar_08847.jpg
@@ -13,6 +14,7 @@ leopard/leopard_05342.jpg
 leopard/leopard_05496.jpg
 leopard/leopard_08072.jpg
 leopard/leopard_08310.jpg
+leopard/leopard_11852.jpg
 ocelot/ocelot_01010.jpg
 ocelot/ocelot_01697.jpg
 ocelot/ocelot_02737.jpg
