@@ -160,6 +160,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-base-jobs", type=int, default=None)
     parser.add_argument("--output", default=None)
     parser.add_argument("--summary-output", default=None)
+    parser.add_argument("--split-dir", default=os.environ.get("MAF07_SPLIT_DIR", "results/splits"))
     parser.add_argument("--summarize-only", action="store_true")
     args = parser.parse_args(argv)
 
@@ -203,7 +204,7 @@ def main(argv: list[str] | None = None) -> int:
         if job_rows.empty:
             continue
 
-        split = _load_split(int(base["seed"]))
+        split = _load_split(int(base["seed"]), args.split_dir)
         eval_frame = make_ood_eval_frame(split, id_classes, protocol=protocol)
         rows, features = feature_frame_for_split(eval_frame, str(base["backbone"]))
         train_mask = rows["role"] == "id_train"

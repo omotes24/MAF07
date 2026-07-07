@@ -5,40 +5,29 @@ import argparse
 import itertools
 import json
 import os
+import sys
 from pathlib import Path
 
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
 from maf07 import TARGET_CLASSES
 from maf07.config import load_yaml, resolve_path
 from maf07.features import feature_frame_for_split
 from maf07.jobs import _stable_job_id, append_csv_rows
-from maf07.methods.diagcard import diagcard_from_env
+from maf07.methods.baselines_distance import knn_score
+from maf07.methods.card import card_from_env
 from maf07.metrics import ood_metrics
-from maf07.runner import _load_split
+from maf07.runner import _load_split, _split_logits
 from maf07.splits import make_ood_eval_frame
-
-
-DEFAULT_VARIANTS = "diag_calib,diag_huber_calib,diag_raw,diag_huber_raw"
 
 
 def _parse_csv_values(raw: str | None, default: list[str]) -> list[str]:
     if not raw:
         return default
-    return [item.strip() for chunk in raw.split(",") for item in chunk.split() if item.strip()]
-
-
-def _variant_config(name: str) -> tuple[float | None, bool]:
-    if name == "diag_calib":
-        return None, True
-    if name == "diag_huber_calib":
-        return float(os.environ.get("MAF07_DIAGCARD_DELTA", "1.345")), True
-    if name == "diag_raw":
-        return None, False
-    if name == "diag_huber_raw":
-        return float(os.environ.get("MAF07_DIAGCARD_DELTA", "1.345")), False
-    raise ValueError(f"Unknown DiagCARD variant: {name}")
+    return [item.strip().lower() for chunk in raw.split(",") for item in chunk.split() if item.strip()]
 
 
 def _jobs(
@@ -47,30 +36,27 @@ def _jobs(
     classes: list[str],
     id_size: int,
     protocol: str,
-    variants: list[str],
+    methods: list[str],
 ) -> pd.DataFrame:
     rows = []
-    for seed, backbone, id_set, variant in itertools.product(
-        seeds,
-        backbones,
-        itertools.combinations(classes, id_size),
-        variants,
+    for seed, backbone, id_set, method in itertools.product(
+        seeds, backbones, itertools.combinations(classes, id_size), methods
     ):
         id_classes = list(id_set)
         row = {
-            "job_kind": "quick_diagcard",
+            "job_kind": "quick_baseline",
             "protocol": protocol,
             "seed": int(seed),
             "backbone": backbone,
-            "method": "diagcard",
-            "variant": variant,
+            "method": method,
+            "variant": "main",
             "id_size": len(id_classes),
             "id_set": "|".join(id_classes),
             "ood_set": "|".join(c for c in classes if c not in set(id_classes)),
         }
         row["job_id"] = _stable_job_id(row)
         rows.append(row)
-    return pd.DataFrame(rows).sort_values(["backbone", "seed", "id_set", "variant"]).reset_index(drop=True)
+    return pd.DataFrame(rows).sort_values(["backbone", "seed", "id_set", "method"]).reset_index(drop=True)
 
 
 def _base_jobs(backbones: list[str], seeds: list[int], classes: list[str], id_size: int) -> pd.DataFrame:
@@ -88,9 +74,9 @@ def _summarize(results_path: Path, summary_path: Path) -> None:
         return
     df = df.drop_duplicates("job_id", keep="last")
     rows = []
-    for (scope, id_size), sub in df.groupby(["protocol", "id_size"], dropna=False):
-        grouped = (
-            sub.groupby(["backbone", "method", "variant"], dropna=False)
+    for (protocol, id_size), sub0 in df.groupby(["protocol", "id_size"], dropna=False):
+        by_backbone = (
+            sub0.groupby(["backbone", "method", "variant"], dropna=False)
             .agg(
                 n=("AUROC", "size"),
                 AUROC_mean=("AUROC", "mean"),
@@ -100,7 +86,7 @@ def _summarize(results_path: Path, summary_path: Path) -> None:
             .reset_index()
         )
         allg = (
-            sub.groupby(["method", "variant"], dropna=False)
+            sub0.groupby(["method", "variant"], dropna=False)
             .agg(
                 n=("AUROC", "size"),
                 AUROC_mean=("AUROC", "mean"),
@@ -110,23 +96,22 @@ def _summarize(results_path: Path, summary_path: Path) -> None:
             .reset_index()
         )
         allg.insert(0, "backbone", "ALL")
-        out = pd.concat([grouped, allg], ignore_index=True)
-        out.insert(0, "id_size", int(id_size))
-        out.insert(0, "scope", scope)
-        rows.extend(out.to_dict("records"))
+        block = pd.concat([by_backbone, allg], ignore_index=True)
+        block.insert(0, "id_size", int(id_size))
+        block.insert(0, "protocol", protocol)
+        rows.extend(block.to_dict("records"))
     summary = pd.DataFrame(rows)
     for col in ["AUROC_mean", "FPR95_mean", "AUPR_OUT_mean"]:
-        if col in summary:
-            summary[col] = summary[col].round(6)
+        summary[col] = summary[col].round(6)
     summary_path.parent.mkdir(parents=True, exist_ok=True)
-    summary.sort_values(["scope", "id_size", "backbone", "variant"]).to_csv(summary_path, index=False)
+    summary.sort_values(["protocol", "id_size", "backbone", "method"]).to_csv(summary_path, index=False)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--id-size", type=int, default=2)
     parser.add_argument("--protocol", default="fair", choices=["fair", "oracle"])
-    parser.add_argument("--variants", default=os.environ.get("MAF07_DIAGCARD_VARIANTS", DEFAULT_VARIANTS))
+    parser.add_argument("--methods", default=os.environ.get("MAF07_BASELINE_METHODS", "knn,card"))
     parser.add_argument("--backbones", default=os.environ.get("MAF07_BACKBONES", "dinov2_vitb14,dinov2_vitl14"))
     parser.add_argument("--seeds", default=os.environ.get("MAF07_SEEDS", "0,1,2"))
     parser.add_argument("--worker-index", type=int, default=int(os.environ.get("MAF07_JOB_WORKER_INDEX", "0")))
@@ -138,10 +123,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--summarize-only", action="store_true")
     args = parser.parse_args(argv)
 
-    variants = _parse_csv_values(args.variants, DEFAULT_VARIANTS.split(","))
     protocol = args.protocol
-    output = resolve_path(args.output or f"results/quick/diagcard_id_size{args.id_size}_{protocol}_results.csv")
-    summary_output = resolve_path(args.summary_output or f"results/quick/diagcard_id_size{args.id_size}_{protocol}_summary.csv")
+    methods = _parse_csv_values(args.methods, ["knn", "card"])
+    output = resolve_path(args.output or f"results/quick/baseline_id_size{args.id_size}_{protocol}_results.csv")
+    summary_output = resolve_path(args.summary_output or f"results/quick/baseline_id_size{args.id_size}_{protocol}_summary.csv")
     if args.summarize_only:
         _summarize(output, summary_output)
         return 0
@@ -150,7 +135,7 @@ def main(argv: list[str] | None = None) -> int:
     classes = list(dcfg.get("classes", TARGET_CLASSES))
     backbones = _parse_csv_values(args.backbones, ["dinov2_vitb14", "dinov2_vitl14"])
     seeds = [int(v) for v in _parse_csv_values(args.seeds, ["0", "1", "2"])]
-    all_variant_jobs = _jobs(backbones, seeds, classes, args.id_size, protocol, variants)
+    all_jobs = _jobs(backbones, seeds, classes, args.id_size, protocol, methods)
     done: set[str] = set()
     if output.exists():
         existing = pd.read_csv(output, usecols=["job_id"])
@@ -167,13 +152,13 @@ def main(argv: list[str] | None = None) -> int:
     completed = 0
     for _, base in base_jobs.iterrows():
         id_classes = str(base["id_set"]).split("|")
-        variant_jobs = all_variant_jobs[
-            (all_variant_jobs["seed"] == int(base["seed"]))
-            & (all_variant_jobs["backbone"] == str(base["backbone"]))
-            & (all_variant_jobs["id_set"] == str(base["id_set"]))
+        job_rows = all_jobs[
+            (all_jobs["seed"] == int(base["seed"]))
+            & (all_jobs["backbone"] == str(base["backbone"]))
+            & (all_jobs["id_set"] == str(base["id_set"]))
         ]
-        variant_jobs = variant_jobs[~variant_jobs["job_id"].astype(str).isin(done)]
-        if variant_jobs.empty:
+        job_rows = job_rows[~job_rows["job_id"].astype(str).isin(done)]
+        if job_rows.empty:
             continue
 
         split = _load_split(int(base["seed"]), args.split_dir)
@@ -188,24 +173,31 @@ def main(argv: list[str] | None = None) -> int:
         train_x = features[train_mask.to_numpy()]
         val_x = features[val_mask.to_numpy()] if val_mask.any() else train_x
         eval_x = features[eval_mask.to_numpy()]
-        detector = diagcard_from_env().fit(train_x, train_y, z_cal=val_x, y_cal=val_y)
         score_rows = rows.loc[eval_mask, ["ood_label"]].copy()
         is_id = (score_rows["ood_label"].to_numpy() == 0).astype(int)
+        cache: dict[str, object] = {}
 
-        for _, job in variant_jobs.iterrows():
-            delta, calibrated = _variant_config(str(job["variant"]))
-            scores = detector.id_scores(eval_x, delta=delta, calibrated=calibrated)
-            metrics = ood_metrics(is_id, scores)
-            result = {**job.to_dict(), **metrics}
+        for _, job in job_rows.iterrows():
+            method = str(job["method"])
+            if method == "knn":
+                if "knn" not in cache:
+                    cache["knn"] = knn_score(train_x, eval_x)
+                scores = cache["knn"]
+            elif method == "card":
+                if "card" not in cache:
+                    if "split_logits" not in cache:
+                        cache["split_logits"] = _split_logits(train_x, train_y, val_x, eval_x)
+                    _, _, eval_logits = cache["split_logits"]
+                    cache["card"] = card_from_env().fit(train_x, train_y, z_cal=val_x, y_cal=val_y).id_scores(
+                        eval_x, eval_logits
+                    )
+                scores = cache["card"]
+            else:
+                raise ValueError(f"Unsupported baseline method: {method}")
+            result = {**job.to_dict(), **ood_metrics(is_id, scores)}
             append_csv_rows(pd.DataFrame([result]), output)
             completed += 1
-            print(
-                json.dumps(
-                    {"completed": completed, "job_id": str(job["job_id"]), "variant": str(job["variant"])},
-                    sort_keys=True,
-                ),
-                flush=True,
-            )
+            print(json.dumps({"completed": completed, "job_id": str(job["job_id"]), "method": method}, sort_keys=True), flush=True)
 
     _summarize(output, summary_output)
     print(json.dumps({"completed": completed, "output": str(output), "summary": str(summary_output)}, sort_keys=True))

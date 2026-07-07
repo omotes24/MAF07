@@ -8,6 +8,7 @@ PYBIN="${MAF07_PYTHON:-python}"
 WORKERS="${MAF07_DIAGCARD_WORKERS:-${MAF07_WORKERS:-4}}"
 OUT="${MAF07_DIAGCARD_OUTPUT:-results/quick/diagcard_full_2x2_results.csv}"
 SUM="${MAF07_DIAGCARD_SUMMARY:-results/quick/diagcard_full_2x2_summary_by_id_size.csv}"
+SPLIT_DIR="${MAF07_SPLIT_DIR:-results/splits}"
 PROTOCOLS="${MAF07_DIAGCARD_PROTOCOLS:-fair oracle}"
 ID_SIZES="${MAF07_DIAGCARD_ID_SIZES:-2 3 4 5 6 7}"
 
@@ -47,6 +48,7 @@ run_group() {
         --protocol "$protocol" \
         --worker-index "$wi" \
         --worker-count "$WORKERS" \
+        --split-dir "$SPLIT_DIR" \
         --output "$OUT" \
         --summary-output "$SUM"
     ) > "results/logs/diagcard_full_2x2_${protocol}_id${idsize}_worker${wi}.log" 2>&1 &
@@ -63,6 +65,7 @@ run_group() {
   "$PYBIN" scripts/run_diagcard_id_size.py \
     --id-size "$idsize" \
     --protocol "$protocol" \
+    --split-dir "$SPLIT_DIR" \
     --output "$OUT" \
     --summary-output "$SUM" \
     --summarize-only || true
@@ -79,6 +82,6 @@ for protocol in $PROTOCOLS; do
   done
 done
 
-"$PYBIN" scripts/run_diagcard_id_size.py --output "$OUT" --summary-output "$SUM" --summarize-only || true
+"$PYBIN" scripts/run_diagcard_id_size.py --split-dir "$SPLIT_DIR" --output "$OUT" --summary-output "$SUM" --summarize-only || true
 echo "DiagCARD 2x2 full end $(date -u +%Y-%m-%dT%H:%M:%SZ) status=$status"
 exit "$status"
