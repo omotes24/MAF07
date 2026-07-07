@@ -144,6 +144,27 @@ def _feature_cache(backbone: str) -> tuple[pd.DataFrame, np.ndarray]:
     return meta, features
 
 
+def _load_exclusions(path: str | Path | None) -> set[str]:
+    if path is None:
+        return set()
+    p = Path(path)
+    if not p.exists():
+        return set()
+    out: set[str] = set()
+    for line in p.read_text(encoding="utf-8").splitlines():
+        item = line.strip()
+        if not item or item.startswith("#"):
+            continue
+        out.add(item)
+    return out
+
+
+def _apply_exclusions(df: pd.DataFrame, excluded_rel_paths: set[str]) -> pd.DataFrame:
+    if not excluded_rel_paths or "rel_path" not in df:
+        return df
+    return df[~df["rel_path"].astype(str).isin(excluded_rel_paths)].reset_index(drop=True)
+
+
 def _feature_rows(split_df: pd.DataFrame, meta: pd.DataFrame, features: np.ndarray) -> tuple[pd.DataFrame, np.ndarray]:
     index = {str(image_id): i for i, image_id in enumerate(meta["image_id"].astype(str))}
     ids = split_df["image_id"].astype(str).tolist()
@@ -734,12 +755,14 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-dir", default="results/paper_figures")
     parser.add_argument("--backbone", default="dinov2_vitb14")
+    parser.add_argument("--exclude-list", default="configs/excluded_images.txt")
     parser.add_argument("--skip-heavy", action="store_true")
     args = parser.parse_args()
 
     out_dir = Path(args.output_dir)
-    manifest = pd.read_csv("results/manifest.csv")
-    split = pd.read_csv("results/splits/splits_seed0.csv")
+    excluded = _load_exclusions(args.exclude_list)
+    manifest = _apply_exclusions(pd.read_csv("results/manifest.csv"), excluded)
+    split = _apply_exclusions(pd.read_csv("results/splits/splits_seed0.csv"), excluded)
     outputs: list[Path] = []
 
     outputs += figure_rsn_concept(out_dir, manifest, split)
