@@ -11,6 +11,7 @@ SUM="${MAF07_BASELINE_SUMMARY:-results/quick/baseline_full_summary_by_id_size.cs
 SPLIT_DIR="${MAF07_SPLIT_DIR:-results/splits}"
 PROTOCOLS="${MAF07_BASELINE_PROTOCOLS:-fair oracle}"
 ID_SIZES="${MAF07_BASELINE_ID_SIZES:-2 3 4 5 6 7}"
+IFS=',' read -r -a BASELINE_GPUS <<< "${MAF07_BASELINE_GPUS:-0,1,2,3}"
 
 export PYTHONPATH="$PWD/src:${PYTHONPATH:-}"
 export MAF07_BACKBONES="${MAF07_BACKBONES:-dinov2_vitb14,dinov2_vitl14}"
@@ -26,7 +27,7 @@ export NUMEXPR_NUM_THREADS="${NUMEXPR_NUM_THREADS:-1}"
 
 mkdir -p results/logs
 echo "Baseline full start $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-echo "backbones=$MAF07_BACKBONES seeds=$MAF07_SEEDS workers=$WORKERS methods=$MAF07_BASELINE_METHODS split_dir=$SPLIT_DIR"
+echo "backbones=$MAF07_BACKBONES seeds=$MAF07_SEEDS workers=$WORKERS methods=$MAF07_BASELINE_METHODS split_dir=$SPLIT_DIR gpus=${BASELINE_GPUS[*]}"
 
 run_group() {
   local protocol="$1"
@@ -34,8 +35,9 @@ run_group() {
   echo "GROUP start protocol=$protocol id_size=$idsize $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   local pids=()
   for ((wi=0; wi<WORKERS; wi++)); do
+    local gpu="${BASELINE_GPUS[$((wi % ${#BASELINE_GPUS[@]}))]}"
     (
-      nice -n 10 "$PYBIN" scripts/run_baseline_id_size.py \
+      CUDA_VISIBLE_DEVICES="$gpu" nice -n 10 "$PYBIN" scripts/run_baseline_id_size.py \
         --id-size "$idsize" \
         --protocol "$protocol" \
         --worker-index "$wi" \
@@ -45,7 +47,7 @@ run_group() {
         --summary-output "$SUM"
     ) > "results/logs/baseline_full_${protocol}_id${idsize}_worker${wi}.log" 2>&1 &
     pids+=("$!")
-    echo "  worker=$wi pid=${pids[-1]}"
+    echo "  worker=$wi gpu=$gpu pid=${pids[-1]}"
   done
 
   local status=0
