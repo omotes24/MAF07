@@ -2,9 +2,11 @@
 # optional cleaned manifests. Paths are relative to the CAT dataset root.
 jaguar/jaguar_02189.jpg
 jaguar/jaguar_04856.jpg
+jaguar/jaguar_08847.jpg
 leopard/leopard_03053.jpg
 leopard/leopard_08072.jpg
 tiger/tiger_13722.jpg
 tiger/tiger_13974.jpg
 tiger/tiger_14952.jpg
+tiger/tiger_17593.jpg
 tiger/tiger_18544.jpg

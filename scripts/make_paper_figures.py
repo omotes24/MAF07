@@ -445,11 +445,15 @@ class ScoreContext:
     knn_threshold: float
 
 
-def _score_context(backbone: str = "dinov2_vitb14", seed: int = 0) -> ScoreContext:
+def _score_context(
+    backbone: str = "dinov2_vitb14",
+    seed: int = 0,
+    excluded_rel_paths: set[str] | None = None,
+) -> ScoreContext:
     from sklearn.preprocessing import LabelEncoder
 
     meta, features = _feature_cache(backbone)
-    split = _load_split(seed)
+    split = _apply_exclusions(_load_split(seed), excluded_rel_paths or set())
     frame = make_ood_eval_frame(split, ID_EXAMPLE, protocol="fair")
     rows, feats = _feature_rows(frame, meta, features)
     train_mask = rows["role"].eq("id_train").to_numpy()
@@ -774,7 +778,7 @@ def main() -> int:
 
     if not args.skip_heavy:
         outputs += figure_feature_space(out_dir, split, args.backbone)
-        ctx = _score_context(args.backbone)
+        ctx = _score_context(args.backbone, excluded_rel_paths=excluded)
         outputs += figure_score_distributions(out_dir, ctx)
         outputs += figure_nearest_neighbor_panel(out_dir, ctx)
         outputs += figure_failure_cases(out_dir, ctx)
