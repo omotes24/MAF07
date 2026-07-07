@@ -1,0 +1,4 @@
+method_a,method_b,metric,n,mean_diff,ci_low,ci_high,good_rate
+diag_huber_raw,diag_raw,AUROC,1476,0.000363,0.000344,0.000382,0.877371
+diag_huber_raw,diag_raw,FPR95,1476,0.005766,0.005448,0.006085,0.881436
+diag_huber_raw,diag_raw,AUPR_OUT,1476,0.001773,0.001702,0.001844,0.976965

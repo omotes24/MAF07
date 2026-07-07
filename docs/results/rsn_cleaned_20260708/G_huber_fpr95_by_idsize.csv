@@ -1,0 +1,7 @@
+method_a,method_b,metric,n,mean_diff,ci_low,ci_high,good_rate,id_size
+diag_huber_raw,diag_raw,FPR95,168,0.005464,0.004393,0.006534,0.815476,2
+diag_huber_raw,diag_raw,FPR95,336,0.005733,0.005112,0.006354,0.910714,3
+diag_huber_raw,diag_raw,FPR95,420,0.005669,0.005153,0.006185,0.919048,4
+diag_huber_raw,diag_raw,FPR95,336,0.005949,0.005308,0.006589,0.904762,5
+diag_huber_raw,diag_raw,FPR95,168,0.006146,0.004973,0.007319,0.833333,6
+diag_huber_raw,diag_raw,FPR95,48,0.005304,0.002671,0.007938,0.583333,7

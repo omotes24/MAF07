@@ -1,0 +1,36 @@
+{
+  "backbones": [
+    "dinov2_vitb14",
+    "dinov2_vitl14"
+  ],
+  "dataset_check_ok": true,
+  "dataset_total": 105554,
+  "expected_total": 105554,
+  "finished_utc": "2026-07-07T17:16:00Z",
+  "id_sizes": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "notes": [
+    "oracle not run by request; current implementation does not distinguish it from fair for these methods.",
+    "discarded methods card/cqs/lar excluded from aggregate outputs.",
+    "mahalanobis family and clip_zeroshot_msp/mcm bit-identical checks are written to implementation_checks.csv."
+  ],
+  "priority_blocks": {
+    "priority1_A_to_D": "complete",
+    "priority2_E_to_H": "complete",
+    "priority3_I_to_J": "complete"
+  },
+  "protocol": "fair only",
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "started_utc": "2026-07-07T15:26:10Z",
+  "wall_time_minutes_approx": 110
+}

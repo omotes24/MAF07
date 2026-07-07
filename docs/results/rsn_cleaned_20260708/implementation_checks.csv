@@ -1,0 +1,3 @@
+check,methods,present_methods,complete,n_pairs,all_metrics_bit_identical,AUROC_bit_identical,FPR95_bit_identical,AUPR_OUT_bit_identical
+mahalanobis_family,mahalanobis|mah_mindist|mahalanobispp,mah_mindist|mahalanobis|mahalanobispp,True,168,True,True,True,True
+clip_family,clip_zeroshot_msp|mcm,clip_zeroshot_msp|mcm,True,168,True,True,True,True

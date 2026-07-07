@@ -1,0 +1,13 @@
+backbone,id_size,method,n,AUROC,FPR95,AUPR_OUT
+ALL,2,diag_calib,168,0.911919,0.477618,0.955467
+ALL,2,diag_huber_calib,168,0.912599,0.470622,0.956251
+ALL,2,diag_huber_raw,168,0.916862,0.430698,0.959028
+ALL,2,diag_raw,168,0.916386,0.436162,0.958338
+dinov2_vitb14,2,diag_calib,84,0.906575,0.489914,0.953953
+dinov2_vitb14,2,diag_huber_calib,84,0.907333,0.481908,0.954748
+dinov2_vitb14,2,diag_huber_raw,84,0.910695,0.438441,0.956949
+dinov2_vitb14,2,diag_raw,84,0.910224,0.445037,0.956228
+dinov2_vitl14,2,diag_calib,84,0.917262,0.465321,0.956981
+dinov2_vitl14,2,diag_huber_calib,84,0.917864,0.459336,0.957753
+dinov2_vitl14,2,diag_huber_raw,84,0.923029,0.422956,0.961107
+dinov2_vitl14,2,diag_raw,84,0.922549,0.427287,0.960447

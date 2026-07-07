@@ -1,0 +1,10 @@
+class_name,expected,actual,matches_expected
+cheetah,11349,11349,True
+jaguar,10452,10452,True
+leopard,10984,10984,True
+lion,15845,15845,True
+ocelot,12342,12342,True
+puma,18763,18763,True
+serval,9149,9149,True
+tiger,16670,16670,True
+TOTAL,105554,105554,True

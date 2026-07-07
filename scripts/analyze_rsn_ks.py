@@ -117,6 +117,18 @@ def _summary_from_pairs(pairs: list[dict[str, object]]) -> dict[str, object]:
     }
 
 
+def _cdf_rows(distances: dict[str, np.ndarray]) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for class_name, values in sorted(distances.items()):
+        vals = np.sort(np.asarray(values, dtype=float))
+        if len(vals) == 0:
+            continue
+        cdf = np.arange(1, len(vals) + 1, dtype=float) / float(len(vals))
+        for distance, prob in zip(vals, cdf, strict=True):
+            rows.append({"class_name": class_name, "distance": float(distance), "cdf": float(prob)})
+    return rows
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--protocol", default="fair", choices=["fair", "oracle"])
@@ -128,6 +140,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-base-jobs", type=int, default=None)
     parser.add_argument("--output", default="results/analysis/rsn_validation_ks_summary.csv")
     parser.add_argument("--pairs-output", default="results/analysis/rsn_validation_ks_pairs.csv")
+    parser.add_argument("--split-dir", default=os.environ.get("MAF07_SPLIT_DIR", "results/splits"))
+    parser.add_argument("--cdf-output", default="")
+    parser.add_argument("--cdf-id-size", type=int, default=7)
+    parser.add_argument("--cdf-seed", type=int, default=0)
+    parser.add_argument("--cdf-backbone", default="dinov2_vitl14")
     args = parser.parse_args(argv)
 
     dcfg = load_yaml("configs/dataset.yaml")
@@ -154,7 +171,7 @@ def main(argv: list[str] | None = None) -> int:
     for _, job in jobs.iterrows():
         if str(job["job_id"]) in done:
             continue
-        split = _load_split(int(job["seed"]))
+        split = _load_split(int(job["seed"]), args.split_dir)
         id_classes = str(job["id_set"]).split("|")
         eval_frame = make_ood_eval_frame(split, id_classes, protocol=str(job["protocol"]))
         rows, features = feature_frame_for_split(eval_frame, str(job["backbone"]))
@@ -172,6 +189,16 @@ def main(argv: list[str] | None = None) -> int:
             append_csv_rows(pd.DataFrame(pair_rows), pairs_output)
         summary = {**job.to_dict(), **_summary_from_pairs(pair_rows)}
         append_csv_rows(pd.DataFrame([summary]), output)
+        if args.cdf_output and int(job["seed"]) == int(args.cdf_seed) and int(job["id_size"]) == int(
+            args.cdf_id_size
+        ) and str(job["backbone"]) == str(args.cdf_backbone):
+            cdf_output = resolve_path(args.cdf_output)
+            if not cdf_output.exists() or cdf_output.stat().st_size == 0:
+                cdf_output.parent.mkdir(parents=True, exist_ok=True)
+                pd.DataFrame([{**job.to_dict(), **row} for row in _cdf_rows(distances)]).to_csv(
+                    cdf_output,
+                    index=False,
+                )
         completed += 1
         print(json.dumps({"completed": completed, "job_id": str(job["job_id"])}, sort_keys=True), flush=True)
 
