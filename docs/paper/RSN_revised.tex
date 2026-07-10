@@ -22,18 +22,16 @@
 \newcommand{\good}{\mathop{\uparrow}}
 \newcommand{\low}{\mathop{\downarrow}}
 
-\title{\RSN：クラス条件付きロバスト標準化近傍距離による\\
+\title{\bfseries \RSN：クラス条件付きロバスト標準化近傍距離による\\
 野生動物画像の超近接分布外検知}
-\author{表 紘太朗\\
-慶應義塾大学 総合政策学部\\
-\texttt{kotaro3150@keio.jp}}
+\author{d-hacks B3.0 omote \quad / \quad 親:zackeyさん}
 \date{}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-既知クラスと未知クラスが同一の細粒度カテゴリに属する場合，未知入力は凍結特徴空間で既知クラスの近傍に入り込み，通常の分布外（out-of-distribution; OOD）検知は難しくなる．本稿では，この超近接 OOD 設定に対し，\RSN（Robust Scale-Normalized kNN）を提案する．\RSN は，生の DINOv2 特徴をクラスごとの次元別標準偏差で正規化し，クラス別に取得した $k=150$ 近傍との残差を Huber 関数で集約する．主設定は特徴の $\ell_2$ 正規化，分類 head による候補クラス制限，経験分位点較正をいずれも用いない．重複・明白な誤画像を除いたネコ科8種・105,554枚のデータセットで，ID クラス数 $m=2,\ldots,7$ の全組合せ，3 seed，2 backbone を評価した．$m=2$ の検証済み再実験では，\RSN は AUROC 0.9169，FPR95 0.4307，AUPR-OUT 0.9590を達成し，\knn の0.9126，0.4626，0.9560を上回った．また全 $m$ で \knn および PSM より高い AUROC と低い FPR95を示した．さらに，ベースライン実装を原論文の定義と照合し，raw score fingerprint と fold 完備性を監査した結果のみを報告する．
+同一分類群内の超近接 OOD 検知では，既知種と未知種の特徴が重なりやすい．本稿では，クラス別の次元標準偏差による正規化と Huber 集約を組み合わせた \RSN を提案する．ネコ科8種・105,554枚，1,476 foldの評価で全 ID クラス数において \knn と PSM を上回り，$m=2$ で AUROC 0.9169，FPR95 0.4307，AUPR-OUT 0.9590を達成した．
 \end{abstract}
 
 \section{はじめに}
@@ -44,7 +42,8 @@
 
 凍結特徴に対する \knn は，分類 head に依存せず，局所密度を利用できる強い基準である~\cite{sun2022knn}．しかし通常の \knn は，すべてのクラスを同一の等方的距離で測る．姿勢や背景の変動が大きいクラスと均質なクラスでは，各特徴次元の自然な変動幅が異なるため，生の距離はクラス間で同じ意味を持たない．また低分散な一方向だけの偶発的なずれが，標準化距離全体を過度に押し上げる場合がある．
 
-そこで本稿では \RSN を提案する．本研究の貢献は次の3点である．
+\newpage
+そこで本稿では \RSN を提案する．主な貢献を以下に示す．
 \begin{itemize}
   \item クラス条件付き次元別標準化と Huber 集約を組み合わせた，学習不要・較正不要の近傍 OOD score を定義する．
   \item 105,554枚のクリーニング後データで，全 ID 組合せ $\times$ 3 seed $\times$ 2 DINOv2 backbone，計1,476 foldを評価し，$m=2$ から7まで一貫した \knn/PSM 超えを示す．
@@ -65,11 +64,11 @@ Mahalanobis 法~\cite{lee2018simple} はクラス条件付きガウス分布を�
 
 \section{提案手法}
 
-図~\ref{fig:pipeline} に主設定の処理を示す．重要なのは，旧実験で実際に用いられ，検証済み再実験でも最良だった設定を主役とする点である．すなわち，\textbf{生の DINOv2 特徴，$k=150$，全 ID クラス候補，Huber $\delta=1.345$，較正なし}を用いる．
+図~\ref{fig:pipeline} に主設定の処理を示す．\textbf{生の DINOv2 特徴，$k=150$，全 ID クラス候補，Huber $\delta=1.345$，較正なし}を用いる．
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=0.98\textwidth]{fig01_rsn_old_pipeline.png}
+  \includegraphics[width=0.98\textwidth]{fig01_rsn_pipeline.png}
   \caption{\RSN の主設定．生の DINOv2 CLS 特徴からクラス別バンクと次元別標準偏差を作り，各クラスで標準化後の150近傍を求める．Huber 集約後，すべての ID クラスに対する最小距離を OOD score とする．$\ell_2$ 正規化，top-$q$ 候補制限，経験分位点較正は用いない．}
   \label{fig:pipeline}
 \end{figure*}
@@ -161,7 +160,28 @@ lion    & 15,845 & tiger  & 16,670\\
 \end{tabular}
 \end{table}
 
-8種から $m=2,3,4,5,6,7$ 種を ID として選び，残りを OOD とする全組合せを評価した．seed は0,1,2，backbone は DINOv2 ViT-B/14 と ViT-L/14~\cite{oquab2024dinov2}である．fold 数は各 $m$ で168，336，420，336，168，48，合計1,476となる．OOD train/validation は用いず，protocol は fair のみとした．
+8種から $m=2,3,4,5,6,7$ 種を ID として選び，残りを OOD とする全組合せを評価した．seed は0,1,2，backbone は DINOv2 ViT-B/14 と ViT-L/14~\cite{oquab2024dinov2}である．各 $m$ の fold 数は $\binom{8}{m}\times3\text{ seed}\times2\text{ backbone}$ で決まり，内訳を表~\ref{tab:folds}に示す．OOD train/validation は用いず，protocol は fair のみとした．
+
+\begin{table}[t]
+\centering
+\small
+\caption{ID クラス数ごとの評価 fold 数．}
+\label{tab:folds}
+\begin{tabular}{crrrr}
+\toprule
+$m$ & ID 組合せ数 & seed & backbone & fold数\\
+\midrule
+2 & $\binom{8}{2}=28$ & 3 & 2 & 168\\
+3 & $\binom{8}{3}=56$ & 3 & 2 & 336\\
+4 & $\binom{8}{4}=70$ & 3 & 2 & 420\\
+5 & $\binom{8}{5}=56$ & 3 & 2 & 336\\
+6 & $\binom{8}{6}=28$ & 3 & 2 & 168\\
+7 & $\binom{8}{7}=8$  & 3 & 2 & 48\\
+\midrule
+合計 & 246 & -- & -- & 1,476\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{比較手法と実装監査}
 
@@ -177,7 +197,7 @@ OOD を positive とし，AUROC$\good$，FPR95$\low$，AUPR-OUT$\good$ を報告
 
 \subsection{検証済み $m=2$ 比較}
 
-表~\ref{tab:verifiedtop} と図~\ref{fig:ranking}に，実装監査後の $m=2$ 結果を示す．\RSN は3指標すべてで最良であり，\knn に対して AUROC $+0.00426$，FPR95 $-0.03192$，AUPR-OUT $+0.00302$ である．特徴距離系では ViM，Mahalanobis，Mahalanobis++ が続く．
+表~\ref{tab:verifiedtop}に，実装監査後の $m=2$ 結果を示す．\RSN は3指標すべてで最良であり，\knn に対して AUROC $+0.00426$，FPR95 $-0.03192$，AUPR-OUT $+0.00302$ である．特徴距離系では ViM，Mahalanobis，Mahalanobis++ が続く．
 
 \begin{table}[t]
 \centering
@@ -198,14 +218,7 @@ OOD を positive とし，AUROC$\good$，FPR95$\low$，AUPR-OUT$\good$ を報告
 \end{tabular}
 \end{table}
 
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=0.78\textwidth]{fig03_verified_ranking.png}
-  \caption{$m=2$ の検証済み DINOv2 手法 AUROC．\RSN の別設定は感度分析に回し，主ランキングには1行だけ掲載した．全数値は `verified\_v1' 実装による．}
-  \label{fig:ranking}
-\end{figure*}
-
-MSP，Entropy，GEN は平均3指標が同じ値（AUROC 0.8440）になったが，raw score fingerprint は全168 foldで異なる．ID が2クラスの場合，これらは同じ絶対 logit margin の単調関数になり，二値 OOD ranking が一致しうるためである．したがって，この一致は dispatch 重複ではない．一方，監査前に見られた Mahalanobis 系の完全一致は修正後に解消した．
+MSP，Entropy，GEN は平均3指標が同じ値（AUROC 0.8440）になったが，raw score fingerprint は全168 foldで異なる．ID が2クラスの場合，これらは同じ絶対 logit margin の単調関数になり，二値 OOD ranking が一致しうるためである．Mahalanobis と Mahalanobis++ は raw score・評価指標ともに異なる．
 
 \subsection{ID クラス数と backbone}
 
@@ -233,8 +246,8 @@ $m$ & $n$ & \multicolumn{2}{c}{\RSN} & \multicolumn{2}{c}{\knn} & \multicolumn{2
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=0.98\textwidth]{fig02_idsize_backbone.png}
-  \caption{左・中央：ID クラス数 $m$ に対する pooled AUROC/FPR95．右：$m=2$ の backbone 別 AUROC．\RSN は全 $m$ と両 backbone で比較手法を上回る．}
+  \includegraphics[width=0.82\textwidth]{fig02_idsize_trend.png}
+  \caption{ID クラス数 $m$ に対する pooled AUROC（左）と FPR95（右）．\RSN は全 $m$ で比較手法を上回る．}
   \label{fig:idsize}
 \end{figure*}
 
@@ -242,7 +255,7 @@ $m=2$ の ViT-B/14 では \RSN/\knn/PSM の AUROC は0.9107/0.9055/0.8897，ViT-
 
 \subsection{主設定の選択と ablation}
 
-表~\ref{tab:ablation}に較正と Huber の2$\times$2 ablation，および旧PDFで一時的に記述されていた $\ell_2$ 正規化・$k=10$・top-3設定を示す．最良は旧実験の実設定，すなわち本稿の \RSN である．$\ell_2$/10/top-3設定は AUROC 0.9086で \knn を下回るため，主設定として扱わない．この差は，特徴ノルム情報の除去，局所近傍数の減少，head による候補誤除外を同時に含む設定感度であり，単一要因の効果とは解釈しない．
+表~\ref{tab:ablation}に，較正・Huber の2$\times$2 ablationと，$\ell_2$ 正規化・$k=10$・top-3設定との比較を示す．生特徴・$k=150$・全クラスを用いる \RSN が最良である．$\ell_2$/10/top-3との差には，特徴ノルム情報の除去，近傍数の減少，head による候補制限の3要因が含まれるため，単一要因の効果とは解釈しない．
 
 \begin{table}[t]
 \centering
@@ -295,14 +308,28 @@ $\ell_2$, $k=10$, top-3 & .9086 & .4522 & .9561\\
 
 \subsection{未知種別の難しさ}
 
-図~\ref{fig:perood}に $m=2$ の per-OOD-class 結果を示す．tiger と lion は比較的分離しやすい一方，jaguar，leopard，ocelot は AUROC 0.840--0.847に留まる．3種はいずれもロゼット模様を持ち，既知側に別の斑紋種が含まれる fold で視覚的近傍へ入りやすい．ocelot の FPR95 0.711は特に高く，平均 AUROCだけでは見えない閾値近傍の誤受理が残る．
+表~\ref{tab:perood}に $m=2$ の per-OOD-class 結果を示す．tiger と lion は比較的分離しやすい一方，jaguar，leopard，ocelot は AUROC 0.840--0.847に留まる．3種はいずれもロゼット模様を持ち，既知側に別の斑紋種が含まれる fold で視覚的近傍へ入りやすい．ocelot の FPR95 0.711は特に高く，平均 AUROCだけでは見えない閾値近傍の誤受理が残る．
 
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=0.90\textwidth]{fig04_per_ood_m2.png}
-  \caption{$m=2$ における \RSN の未知種別 AUROC/FPR95．橙はロゼット，黄は斑点，緑は無地，灰は縞を表す．}
-  \label{fig:perood}
-\end{figure*}
+\begin{table}[t]
+\centering
+\scriptsize
+\caption{$m=2$ における \RSN の未知種別評価．}
+\label{tab:perood}
+\begin{tabular}{llrrr}
+\toprule
+OOD種 & 模様 & AUROC & FPR95 & AUPR\\
+\midrule
+jaguar  & ロゼット & .8395 & .6262 & .6357\\
+leopard & ロゼット & .8465 & .5824 & .6679\\
+ocelot  & ロゼット & .8471 & .7112 & .6435\\
+puma    & 無地     & .9307 & .4781 & .8490\\
+cheetah & 斑点     & .9355 & .4851 & .7810\\
+serval  & 斑点     & .9375 & .4190 & .7754\\
+lion    & 無地     & .9612 & .2894 & .8883\\
+tiger   & 縞       & .9783 & .0703 & .9535\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{分析と考察}
 
@@ -312,14 +339,14 @@ $\ell_2$, $k=10$, top-3 & .9086 & .4522 & .9561\\
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\linewidth]{fig05_shared_shape_cdf.png}
+  \includegraphics[width=\linewidth]{fig03_shared_shape_cdf.png}
   \caption{代表 fold のクラス別 validation 距離 CDF．数値は全1,476 foldの平均．}
   \label{fig:cdf}
 \end{figure}
 
 \subsection{Huber 化の役割}
 
-Huber 化は全体平均では小さいが安定した改善を与える．未知種別には差があり，全 $m$ 集計で cheetah は AUROC $+0.0011$，tiger と lion は約 $+0.0006$，leopard は $-0.0003$ であった（付録図~\ref{fig:huber_species}）．これは，広い次元に分散した OOD 信号では単一座標ノイズの抑制が有効だが，少数次元へ集中した信号では線形化が検出力も抑えうるというトレードオフを示す．したがって Huber は主役の効果ではなく，対角標準化を安定化する小さな補助要素と位置づける．
+Huber 化は全体平均では小さいが安定した改善を与える．未知種別には差があり，全 $m$ 集計で cheetah は AUROC $+0.0011$，tiger と lion は約 $+0.0006$，leopard は $-0.0003$ であった．これは，広い次元に分散した OOD 信号では単一座標ノイズの抑制が有効だが，少数次元へ集中した信号では線形化が検出力も抑えうるというトレードオフを示す．したがって Huber は主役の効果ではなく，対角標準化を安定化する小さな補助要素と位置づける．
 
 \subsection{なぜ生特徴・全クラスが効くか}
 
@@ -331,22 +358,15 @@ DINOv2 特徴ノルムは画像品質，背景，対象の可視性などを含�
 
 \section{結論}
 
-超近接 OOD に対し，クラス条件付き次元別標準化と Huber 集約を用いる \RSN を提示した．検証の結果，主設定は raw DINOv2 特徴，$k=150$，全 ID クラス，$\delta=1.345$，較正なしであり，過去に本文へ混入した $\ell_2$/10/top-3設定より明確に強かった．クリーニング後105,554枚の全1,476 foldで，\RSN は全 ID クラス数にわたり \knn と PSM を上回り，$m=2$ の検証済み全手法表でも最良だった．結果の再現性を担保するため，論文の数値は実装監査後の `verified\_v1' とクリーニング後集計だけへ限定した．
+超近接 OOD に対し，クラス条件付き次元別標準化と Huber 集約を用いる \RSN を提示した．主設定は raw DINOv2 特徴，$k=150$，全 ID クラス，$\delta=1.345$，較正なしである．クリーニング後105,554枚の全1,476 foldで，\RSN は全 ID クラス数にわたり \knn と PSM を上回り，$m=2$ の検証済み全手法表でも最良だった．
 
 \appendix
 \section{補足結果}
 
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=0.78\textwidth]{fig06_huber_species.png}
-  \caption{全 ID クラス数を併合した，Huber 化による未知種別 AUROC 差．}
-  \label{fig:huber_species}
-\end{figure*}
-
 \begin{table*}[t]
 \centering
 \scriptsize
-\caption{$m=2$ の検証済み全ランキング．RSN の $\ell_2$/10/top-3設定は手法ランキングから外し，表~\ref{tab:ablation}の設定感度としてのみ報告する．}
+\caption{$m=2$ の検証済み全手法ランキング．}
 \label{tab:fullranking}
 \begin{tabular}{clrrr@{\hspace{9mm}}clrrr}
 \toprule
