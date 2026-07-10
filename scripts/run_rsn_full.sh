@@ -15,9 +15,11 @@ ID_SIZES="${MAF07_RSN_ID_SIZES:-2 3 4 5 6 7}"
 export PYTHONPATH="$PWD/src:${PYTHONPATH:-}"
 export MAF07_BACKBONES="${MAF07_BACKBONES:-dinov2_vitb14,dinov2_vitl14}"
 export MAF07_SEEDS="${MAF07_SEEDS:-0,1,2}"
-export MAF07_RSN_K="${MAF07_RSN_K:-150}"
+export MAF07_RSN_PROFILE="${MAF07_RSN_PROFILE:-paper}"
+export MAF07_RSN_K="${MAF07_RSN_K:-10}"
 export MAF07_RSN_DELTA="${MAF07_RSN_DELTA:-1.345}"
-export MAF07_RSN_NORMALIZE="${MAF07_RSN_NORMALIZE:-0}"
+export MAF07_RSN_NORMALIZE="${MAF07_RSN_NORMALIZE:-1}"
+export MAF07_RSN_USE_TOPQ="${MAF07_RSN_USE_TOPQ:-1}"
 export MAF07_RSN_MIN_STD="${MAF07_RSN_MIN_STD:-1e-3}"
 export MAF07_RSN_SCORE_BATCH="${MAF07_RSN_SCORE_BATCH:-96}"
 export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
@@ -28,7 +30,7 @@ export NUMEXPR_NUM_THREADS="${NUMEXPR_NUM_THREADS:-1}"
 
 mkdir -p results/logs
 echo "RSN full start $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-echo "backbones=$MAF07_BACKBONES seeds=$MAF07_SEEDS workers=$WORKERS k=$MAF07_RSN_K delta=$MAF07_RSN_DELTA"
+echo "backbones=$MAF07_BACKBONES seeds=$MAF07_SEEDS workers=$WORKERS profile=$MAF07_RSN_PROFILE k=$MAF07_RSN_K delta=$MAF07_RSN_DELTA normalize=$MAF07_RSN_NORMALIZE topq=$MAF07_RSN_USE_TOPQ"
 
 run_group() {
   local protocol="$1"

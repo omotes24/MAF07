@@ -12,11 +12,8 @@ ood_methods:
     - energy
     - maxlogit
     - mahalanobis
-    - mah_mindist
     - rmd
     - knn
-    - card
-    - lar
     - mahalanobispp
     - vim
     - react
@@ -27,25 +24,17 @@ ood_methods:
     - gen
     - scale
     - nci
-    - odin
     - gradnorm
     - openmax
     - kl_matching
-    - mcm
-    - clip_zeroshot_msp
-    - clip_text_energy
-    - tip_adapter
   oracle:
     - msp
     - entropy
     - energy
     - maxlogit
     - mahalanobis
-    - mah_mindist
     - rmd
     - knn
-    - card
-    - lar
     - mahalanobispp
     - vim
     - react
@@ -56,14 +45,16 @@ ood_methods:
     - gen
     - scale
     - nci
-    - odin
     - gradnorm
     - openmax
     - kl_matching
-    - mcm
-    - clip_zeroshot_msp
-    - clip_text_energy
-    - tip_adapter
+legacy_non_verified_ood_names:
+  - mah_mindist
+  - odin
+  - mcm
+  - clip_zeroshot_msp
+  - clip_text_energy
+  - tip_adapter
 maf_ablation:
   fusion:
     - s_conf_only

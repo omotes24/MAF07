@@ -77,29 +77,31 @@ results/features/dinov2_vitb14.*
 results/features/dinov2_vitl14.*
 ```
 
-## 5. Baseline OOD runs
+## 5. Verified baseline OOD runs
 
 The fair protocol is the main deployable protocol. It never uses OOD train or
 OOD validation data.
 
+The paper-table audit has a dedicated entry point. It runs both RSN profiles and
+only the methods that can be implemented faithfully from DINOv2 features plus
+the shared ridge linear probe:
+
 ```bash
-export MAF07_BACKBONES=dinov2_vitb14,dinov2_vitl14
-export MAF07_METHODS=knn,card,msp,entropy,energy,maxlogit,mahalanobis,mah_mindist,rmd,mahalanobispp,vim,react,ashp,ashs,ashb,dice,gen,scale,nci,odin,gradnorm,openmax,kl_matching,mcm,clip_zeroshot_msp,clip_text_energy,tip_adapter
-bash scripts/run_ood_fair.sh
+bash scripts/run_verified_baseline_audit_hades.sh
 ```
 
-The full DINOv2 comparison list used by `configs/methods.yaml` is:
+The verified method list is:
 
 ```text
-msp, entropy, energy, maxlogit, mahalanobis, mah_mindist, rmd, knn, card,
-lar, mahalanobispp, vim, react, ashp, ashs, ashb, dice, gen, scale, nci,
-odin, gradnorm, openmax, kl_matching, mcm, clip_zeroshot_msp,
-clip_text_energy, tip_adapter
+rsn_reported, rsn_paper, knn, mahalanobis, mahalanobispp, rmd,
+msp, entropy, energy, maxlogit, gen, gradnorm, kl_matching, vim, react,
+ashp, ashb, ashs, dice, scale, nci, openmax
 ```
 
-If the paper text lists the 4.4 baselines, it must include the CLIP-derived
-scores (`mcm`, `clip_zeroshot_msp`, `clip_text_energy`) and `tip_adapter`, or
-those rows should be removed from the table.
+`mah_mindist` is not a separate method. ODIN requires image-input gradients and
+is not evaluated by the feature-cache runner. MCM, CLIP-Zeroshot-MSP,
+CLIP-Text-Energy, and Tip-Adapter require a genuine CLIP image/text encoder and
+must not be reported from DINO class prototypes. See `docs/BASELINE_AUDIT.md`.
 
 Oracle runs are separate and should not be reported as deployable main results:
 
@@ -118,9 +120,11 @@ Use the dedicated RSN entry point:
 export MAF07_BACKBONES=dinov2_vitb14,dinov2_vitl14
 export MAF07_SEEDS=0,1,2
 export MAF07_RSN_WORKERS=4
-export MAF07_RSN_K=150
+export MAF07_RSN_PROFILE=paper
+export MAF07_RSN_K=10
 export MAF07_RSN_DELTA=1.345
-export MAF07_RSN_NORMALIZE=0
+export MAF07_RSN_NORMALIZE=1
+export MAF07_RSN_USE_TOPQ=1
 export MAF07_RSN_MIN_STD=1e-3
 export MAF07_RSN_SCORE_BATCH=96
 bash scripts/run_rsn_full.sh
@@ -134,15 +138,17 @@ results/quick/rsn_full_summary_by_id_size.csv
 results/logs/rsn_full_*_worker*.log
 ```
 
-The archived completed experiment was run before the public rename and is stored
-under the legacy names:
+The archived completed experiment was run with the non-paper profile and is
+stored under the legacy names:
 
 ```text
 results/quick/diagcard_full_huber_raw_results.csv
 results/quick/diagcard_full_huber_raw_summary_by_id_size.csv
 ```
 
-Those legacy files are exactly RSN.
+Those files use `k=150`, no L2 feature normalization, and all candidate classes.
+They are reproduced only with `MAF07_RSN_PROFILE=reported_20260708` and must not
+be mixed with the paper-profile output.
 
 ## 7. Additional analyses
 

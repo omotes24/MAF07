@@ -39,6 +39,12 @@ from .methods.lar import lar_from_env
 from .methods.lantern import lantern_from_env
 from .methods.maf import MAFScorer, distance_variant_score, maf_fusion
 from .methods.psm import psm_from_env
+from .methods.verified_baselines import (
+    UNSUPPORTED_DINOV2_METHODS,
+    VERIFIED_METHODS,
+    UnsupportedVerifiedBaseline,
+    VerifiedBaselineSuite,
+)
 from .splits import make_ood_eval_frame
 
 
@@ -303,6 +309,12 @@ def _score_method(
         fit_y = val_y if len(val_y) else train_y
         scorer = MAFScorer().fit(fit_x, fit_y)
         return scorer.score(eval_x)
+    if method in VERIFIED_METHODS:
+        return VerifiedBaselineSuite(train_x, train_y, val_x).score(method, eval_x)
+    if method == "mah_mindist" or method in UNSUPPORTED_DINOV2_METHODS:
+        raise UnsupportedVerifiedBaseline(
+            f"{method} is not a distinct paper-faithful baseline in the DINOv2 feature protocol"
+        )
     if method in {"msp", "entropy", "energy", "maxlogit", "odin", "gen"}:
         logits, _ = _logit_training(train_x, train_y, eval_x)
         return logits_to_scores(logits, method)
@@ -387,6 +399,15 @@ def _score_ood_group_method(
     cache: dict[str, object],
 ) -> np.ndarray:
     method = method.lower()
+
+    if method in VERIFIED_METHODS:
+        if "verified_baseline_suite" not in cache:
+            cache["verified_baseline_suite"] = VerifiedBaselineSuite(train_x, train_y, val_x)
+        return cache["verified_baseline_suite"].score(method, eval_x)
+    if method == "mah_mindist" or method in UNSUPPORTED_DINOV2_METHODS:
+        raise UnsupportedVerifiedBaseline(
+            f"{method} is not a distinct paper-faithful baseline in the DINOv2 feature protocol"
+        )
 
     if method in {"msp", "entropy", "energy", "maxlogit", "odin", "gen", "gradnorm", "kl_matching"}:
         if "eval_logits" not in cache:

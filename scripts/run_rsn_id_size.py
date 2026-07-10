@@ -17,7 +17,8 @@ from maf07 import TARGET_CLASSES
 from maf07.config import load_yaml, resolve_path
 from maf07.features import feature_frame_for_split
 from maf07.jobs import _stable_job_id, append_csv_rows
-from maf07.methods.rsn import rsn_from_env
+from maf07.methods.rsn import rsn_from_env, rsn_uses_topq
+from maf07.methods.verified_baselines import fit_ridge_linear_probe
 from maf07.metrics import ood_metrics
 from maf07.runner import _load_split
 from maf07.splits import make_ood_eval_frame
@@ -164,7 +165,10 @@ def main(argv: list[str] | None = None) -> int:
         detector = rsn_from_env().fit(train_x, train_y, z_cal=val_x, y_cal=val_y)
         score_rows = rows.loc[eval_mask, ["ood_label"]].copy()
         is_id = (score_rows["ood_label"].to_numpy() == 0).astype(int)
-        scores = detector.id_scores(eval_x)
+        eval_logits = None
+        if rsn_uses_topq():
+            eval_logits = fit_ridge_linear_probe(train_x, train_y).logits(eval_x)
+        scores = detector.id_scores(eval_x, logits=eval_logits)
         metrics = ood_metrics(is_id, scores)
 
         for _, job in job_rows.iterrows():

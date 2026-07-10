@@ -38,32 +38,18 @@ The image dataset itself is not committed to this Git repository. Keep the
 images on Hades, or materialize the same directory layout locally and update
 `configs/dataset.yaml`.
 
-## RSN result summary
+## Result audit status
 
-The completed DINOv2 full sweep uses:
+The July 2026 audit found that the archived full-ranking table used several
+incorrect or proxy baseline implementations. It also found that the RSN settings
+in the PDF (`L2`, `k=10`, top-3 candidates) differ from the settings that produced
+the archived numbers (raw features, `k=150`, all classes).
 
-- backbones: `dinov2_vitb14`, `dinov2_vitl14`
-- seeds: `0,1,2`
-- protocols: `fair`, `oracle`
-- ID sizes: `2,3,4,5,6,7`
-- trials: `6 * C(8, k)` per id size across two DINOv2 backbones and three seeds
-- legacy result label: `diagcard_huber_raw`
-
-Fair protocol, DINOv2 pooled over both backbones:
-
-| id_size | n | RSN AUROC | RSN FPR95 | RSN AUPR_OUT | AUROC vs KNN | FPR95 vs KNN | AUROC vs CARD | FPR95 vs CARD |
-|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 2 | 168 | 0.888020 | 0.527700 | 0.944890 | +0.005021 | -0.028476 | +0.010547 | -0.013240 |
-| 3 | 336 | 0.865054 | 0.603194 | 0.887647 | +0.004508 | -0.027255 | +0.014811 | -0.046004 |
-| 4 | 420 | 0.846675 | 0.653460 | 0.807276 | +0.004302 | -0.024446 | +0.017366 | -0.065790 |
-| 5 | 336 | 0.830355 | 0.694429 | 0.696770 | +0.004054 | -0.023011 | +0.018530 | -0.072362 |
-| 6 | 168 | 0.813942 | 0.732347 | 0.547123 | +0.003624 | -0.018921 | +0.018480 | -0.070645 |
-| 7 | 48 | 0.792711 | 0.776005 | 0.348381 | +0.002910 | -0.013564 | +0.016266 | -0.056380 |
-
-For the fair protocol paired comparison over all 1476 DINOv2 settings, RSN
-improves over KNN by `+0.004252` AUROC, `-0.024234` FPR95, and `+0.008914`
-AUPR_OUT. It improves over CARD by `+0.016364` AUROC, `-0.057047` FPR95, and
-`+0.024043` AUPR_OUT.
+The archived CSVs remain under `docs/results/rsn_cleaned_20260708/` for
+provenance, but must not be cited as verified final results. See
+[docs/BASELINE_AUDIT.md](docs/BASELINE_AUDIT.md) for the method-by-method audit.
+The corrected runner evaluates the PDF and archived RSN profiles side by side and
+stores raw-score fingerprints in addition to metrics.
 
 More details are in [docs/RSN.md](docs/RSN.md) and
 [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md).
@@ -99,6 +85,12 @@ export MAF07_BACKBONES=dinov2_vitb14,dinov2_vitl14
 export MAF07_SEEDS=0,1,2
 export MAF07_RSN_WORKERS=4
 bash scripts/run_rsn_full.sh
+```
+
+Run the verified `m=2` baseline audit used to replace the PDF ranking table:
+
+```bash
+bash scripts/run_verified_baseline_audit_hades.sh
 ```
 
 Completion is defined by `results/coverage/coverage_report.json`: `expected_jobs` and

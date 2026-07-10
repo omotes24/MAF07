@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from maf07.methods.baselines_logit import gradnorm, kl_matching
+from maf07.methods.verified_baselines import fit_ridge_linear_probe
 from maf07.metrics import fpr95, logits_to_scores, ood_metrics, oscr
 from maf07.runner import _torch_ridge_logits
 
@@ -25,7 +26,8 @@ def test_binary_logits_are_promoted_to_two_columns() -> None:
     logits = np.array([-2.0, 0.0, 2.0])
     assert logits_to_scores(logits, "msp").shape == (3,)
     assert logits_to_scores(logits, "odin").shape == (3,)
-    assert gradnorm(logits).shape == (3,)
+    features = np.array([[1.0, -1.0], [0.5, 0.25], [-0.2, 0.8]])
+    assert gradnorm(logits, features).shape == (3,)
     train = {
         0: np.array([-2.0, -1.0, -0.5]),
         1: np.array([0.5, 1.0, 2.0]),
@@ -54,3 +56,5 @@ def test_torch_ridge_logits_shape(monkeypatch) -> None:
     logits, by_class = _torch_ridge_logits(train_x, train_y, test_x)
     assert logits.shape == (2, 2)
     assert sorted(by_class) == [0, 1]
+    probe = fit_ridge_linear_probe(train_x, train_y, device="cpu")
+    np.testing.assert_allclose(probe.logits(test_x), logits, rtol=1e-6, atol=1e-6)
