@@ -117,7 +117,6 @@ python scripts/audit_verified_baseline_sweep.py \
 
 python scripts/aggregate_verified_baseline_sweep.py \
   --verified-fold results/hades_results/rsn_baseline_full_20260711/fold_level_verified.csv \
-  --psm-fold results/hades_results/rsn_cleaned_20260708/fold_level.csv \
   --output-dir results/hades_results/rsn_baseline_full_20260711/aggregated
 ```
 

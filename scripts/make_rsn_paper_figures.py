@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Build the figures used by the RSN old-setting paper rewrite.
-
-All quantitative panels are derived from the cleaned CAT outputs or the
-verified-v1 baseline audit. The script intentionally does not read the
-invalidated archived full-ranking table.
-"""
+"""Build the figures used by the RSN paper."""
 
 from __future__ import annotations
 
@@ -17,16 +12,17 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 import pandas as pd
 from PIL import Image, ImageOps
+from scipy import stats
 
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs" / "paper" / "figures"
 CLEAN = ROOT / "docs" / "results" / "rsn_cleaned_20260708"
+VERIFIED = ROOT / "docs" / "results" / "rsn_baseline_full_20260711" / "fold_level_verified.csv"
 
 COLORS = {
     "RSN": "#007f73",
     "KNN": "#e1812c",
-    "PSM": "#5b6f9f",
 }
 
 def configure() -> None:
@@ -120,10 +116,10 @@ def pipeline_figure() -> None:
 
 
 def idsize_trend_figure() -> None:
-    main = pd.read_csv(CLEAN / "B_main_idsize.csv")
-    methods = {"diag_huber_raw": "RSN", "knn": "KNN", "psm": "PSM"}
-    pooled = main[(main["backbone"] == "ALL") & main["method"].isin(methods)].copy()
-    pooled["label"] = pooled["method"].map(methods)
+    fold = pd.read_csv(VERIFIED)
+    methods = {"rsn_reported": "RSN", "knn": "KNN"}
+    fold = fold[fold["method"].isin(methods)].copy()
+    fold["label"] = fold["method"].map(methods)
 
     fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.45))
     panels = [
@@ -132,16 +128,33 @@ def idsize_trend_figure() -> None:
         ("AUPR_OUT", axes[2], "higher is better"),
     ]
     for metric, ax, better in panels:
-        for label in ("RSN", "KNN", "PSM"):
-            block = pooled[pooled["label"] == label].sort_values("id_size")
+        summary = (
+            fold.groupby(["id_size", "label"])[metric]
+            .agg(["mean", "sem", "count"])
+            .reset_index()
+        )
+        summary["half_ci"] = stats.t.ppf(0.975, summary["count"] - 1) * summary["sem"]
+        for label in ("RSN", "KNN"):
+            block = summary[summary["label"] == label].sort_values("id_size")
+            x = block["id_size"].to_numpy(dtype=float)
+            y = block["mean"].to_numpy(dtype=float)
+            half = block["half_ci"].to_numpy(dtype=float)
             ax.plot(
-                block["id_size"],
-                block[metric],
+                x,
+                y,
                 marker="o",
                 linewidth=2.1,
                 markersize=5,
                 label=label,
                 color=COLORS[label],
+            )
+            ax.fill_between(
+                x,
+                y - half,
+                y + half,
+                color=COLORS[label],
+                alpha=0.14,
+                linewidth=0,
             )
         ax.set_xticks(range(2, 8))
         ax.set_xlabel("number of ID classes m")
@@ -151,7 +164,7 @@ def idsize_trend_figure() -> None:
         ax.grid(alpha=0.22)
     axes[0].legend(frameon=False, loc="lower left")
 
-    fig.suptitle("Performance as the number of ID classes increases", fontsize=13, weight="bold")
+    fig.suptitle("Performance across the number of ID classes (mean and 95% CI)", fontsize=13, weight="bold")
     fig.tight_layout(rect=(0, 0, 1, 0.92))
     save(fig, "fig02_idsize_trend")
 

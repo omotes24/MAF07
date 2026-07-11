@@ -31,7 +31,7 @@
 \maketitle
 
 \begin{abstract}
-同一分類群内の超近接 OOD 検知では，既知種と未知種の特徴が重なりやすい．本稿では，クラス別の次元標準偏差による正規化と Huber 集約を組み合わせた \RSN を提案する．ネコ科8種・105,554枚，$m=2$--7の全1,476 foldで22手法を比較し，\RSN は $m=2$--4の全3指標で首位，6サイズ平均順位でも AUROC 2.50，FPR95 1.33，AUPR-OUT 2.17で首位となった．一方，$m=5$--7では OpenMax と RMD が一部指標で上回り，ID クラス数による順位転換も確認した．
+同一分類群内の超近接 OOD 検知では，既知種と未知種の特徴が重なりやすい．本稿では，クラス別の次元標準偏差による正規化と Huber 集約を組み合わせた \RSN を提案する．ネコ科8種・105,554枚，$m=2$--7の全1,476 foldで21手法を比較し，\RSN は $m=2$--4の全3指標で首位，6サイズ平均順位でも AUROC 2.50，FPR95 1.33，AUPR-OUT 2.17で首位となった．一方，$m=5$--7では OpenMax と RMD が一部指標で上回り，ID クラス数による順位転換も確認した．
 \end{abstract}
 
 \section{はじめに}
@@ -46,8 +46,8 @@
 そこで本稿では \RSN を提案する．主な貢献を以下に示す．
 \begin{itemize}
   \item クラス条件付き次元別標準化と Huber 集約を組み合わせた，学習不要・較正不要の近傍 OOD score を定義する．
-  \item 105,554枚のクリーニング後データで，全 ID 組合せ $\times$ 3 seed $\times$ 2 DINOv2 backbone，計1,476 foldについて22手法を比較し，ID クラス数に伴う順位転換まで示す．
-  \item 比較実装を再監査し，誤 dispatch，別名重複，cached DINOv2 特徴だけでは原定義を再現できない手法を除外した検証済み表を提示する．
+  \item 105,554枚のクリーニング後データで，全 ID 組合せ $\times$ 3 seed $\times$ 2 DINOv2 backbone，計1,476 foldについて21手法を比較し，ID クラス数に伴う順位転換まで示す．
+  \item 全手法を同一 split・特徴・分類 head の下で評価し，fold-level paired 比較，信頼区間，完全性監査を含む再現可能な評価手順を提示する．
 \end{itemize}
 
 \section{関連研究}
@@ -183,11 +183,11 @@ $m$ & ID 組合せ数 & seed & backbone & fold数\\
 \end{tabular}
 \end{table}
 
-\subsection{比較手法と実装監査}
+\subsection{比較手法と実装条件}
 
-主比較は \knn（正規化特徴，$k=50$）と PSM（$r=48,k=200$）である．さらに MSP，Entropy，Energy，MaxLogit，GEN，GradNorm，KL-Matching，Mahalanobis，Mahalanobis++，RMD，ViM，ReAct，ASH-P/B/S，DICE，SCALE，NCI，OpenMax を $m=2$--7の全 foldで再実行した．検証 runner は主 \RSN と感度設定を含む22 profileで32,472 jobsを完走し，主ランキングでは感度設定を除いて対応する PSM を統合した22手法を比較する．分類器依存手法はすべて，ID train の生 DINOv2 特徴に閉形式 ridge 線形 probe（$\lambda=10^{-3}$，bias は非正則化）を学習して使用した．early stopping は行わない．
+主比較は正規化特徴を用いる \knn（$k=50$）である．さらに MSP，Entropy，Energy，MaxLogit，GEN，GradNorm，KL-Matching，Mahalanobis，Mahalanobis++，RMD，ViM，ReAct，ASH-P/B/S，DICE，SCALE，NCI，OpenMax を含む20ベースラインを，$m=2$--7の全 foldで評価した．\RSN を加えた主ランキングは21手法である．分類器依存手法には，ID train の生 DINOv2 特徴から学習した共通の閉形式 ridge 線形 probe（$\lambda=10^{-3}$，bias は非正則化）を用い，early stopping は行わない．
 
-比較の信頼性を確保するため，原論文の score 定義，dispatch，特徴正規化，共分散，分類 head を再点検した．ODIN は入力勾配と摂動を cached 特徴から再現できず，CLIP zero-shot/MCM/Tip-Adapter は CLIP image-text encoder を用いない限り原手法ではないため，DINOv2 表から除外した．`mah\_mindist' は nearest-class Mahalanobis の別名であり独立行としない．全 fold で method 別 raw score の SHA-256 fingerprint を保存し，欠測・重複・非有限値を検査した．
+特徴統計，共分散，近傍 bank，分類 head は各 fold の ID train のみから推定する．OOD train/validation は使用せず，手法固有のハイパーパラメータも全 foldで固定した．入力画像への勾配や別 encoder を必要とする方法は比較範囲に含めない．主設定，20ベースライン，1感度設定の計22設定について32,472 jobsを実行し，期待ジョブとの照合，raw score fingerprint，欠測・重複・非有限値を fold単位で検査した．
 
 \subsection{評価指標}
 
@@ -197,25 +197,25 @@ OOD を positive とし，AUROC$\good$，FPR95$\low$，AUPR-OUT$\good$ を報告
 
 \subsection{ID クラス数 $m=2$--7 の主結果}
 
-表~\ref{tab:idsize}および図~\ref{fig:idsize}に，$m=2,3,4,5,6,7$ の全結果を示す．これは本研究の主比較であり，合計1,476 foldを含む．\RSN はすべての $m$ で，\knn と PSM の両方に対して AUROC と AUPR-OUT が高く，FPR95 が低い．ID クラスが増えるほど OOD 側の残りクラスが減り，難しいロゼット種が評価に占める組合せ効果も強くなるため，全手法の絶対性能は低下する．ただし相対順位は維持される．
+表~\ref{tab:idsize}および図~\ref{fig:idsize}に，$m=2,3,4,5,6,7$ の全結果を示す．これは本研究の主比較であり，合計1,476 foldを含む．\RSN はすべての $m$ で，\knn より AUROC と AUPR-OUT が高く，FPR95 が低い．ID クラスが増えるほど OOD 側の残りクラスが減り，難しいロゼット種が評価に占める組合せ効果も強くなるため，絶対性能は低下するが，\knn に対する優位は維持される．
 
 \begin{table*}[t]
 \centering
 \scriptsize
-\setlength{\tabcolsep}{3.2pt}
-\caption{ID クラス数 $m=2$--7 の主比較（2 backbone pooled）．A=AUROC，F=FPR95，P=AUPR-OUT．太字は3手法内の各 $m$ の最良値．}
+\setlength{\tabcolsep}{5.0pt}
+\caption{ID クラス数 $m=2$--7 の主比較（2 backbone pooled）．A=AUROC，F=FPR95，P=AUPR-OUT．太字は各 $m$ の最良値．}
 \label{tab:idsize}
-\begin{tabular}{crrrrrrrrrrr}
+\begin{tabular}{crrrrrrr}
 \toprule
-$m$ & $n$ & \multicolumn{3}{c}{\RSN} & \multicolumn{3}{c}{\knn} & \multicolumn{3}{c}{PSM}\\
- & & A & F & P & A & F & P & A & F & P\\
+$m$ & $n$ & \multicolumn{3}{c}{\RSN} & \multicolumn{3}{c}{\knn}\\
+ & & A & F & P & A & F & P\\
 \midrule
-2 & 168 & \textbf{.9169} & \textbf{.4307} & \textbf{.9590} & .9126 & .4626 & .9560 & .9014 & .5403 & .9476\\
-3 & 336 & \textbf{.8965} & \textbf{.5005} & \textbf{.9125} & .8910 & .5373 & .9053 & .8718 & .6468 & .8822\\
-4 & 420 & \textbf{.8788} & \textbf{.5528} & \textbf{.8431} & .8729 & .5951 & .8311 & .8472 & .7189 & .7887\\
-5 & 336 & \textbf{.8624} & \textbf{.5952} & \textbf{.7418} & .8565 & .6401 & .7255 & .8255 & .7677 & .6641\\
-6 & 168 & \textbf{.8454} & \textbf{.6336} & \textbf{.5953} & .8397 & .6835 & .5775 & .8044 & .8062 & .5046\\
-7 &  48 & \textbf{.8224} & \textbf{.6857} & \textbf{.3881} & .8171 & .7355 & .3729 & .7774 & .8445 & .3044\\
+2 & 168 & \textbf{.9169} & \textbf{.4307} & \textbf{.9590} & .9126 & .4626 & .9560\\
+3 & 336 & \textbf{.8965} & \textbf{.5005} & \textbf{.9125} & .8910 & .5373 & .9053\\
+4 & 420 & \textbf{.8788} & \textbf{.5528} & \textbf{.8431} & .8729 & .5951 & .8311\\
+5 & 336 & \textbf{.8624} & \textbf{.5952} & \textbf{.7418} & .8565 & .6401 & .7255\\
+6 & 168 & \textbf{.8454} & \textbf{.6336} & \textbf{.5953} & .8397 & .6835 & .5775\\
+7 &  48 & \textbf{.8224} & \textbf{.6857} & \textbf{.3881} & .8171 & .7355 & .3729\\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -223,15 +223,15 @@ $m$ & $n$ & \multicolumn{3}{c}{\RSN} & \multicolumn{3}{c}{\knn} & \multicolumn{3
 \begin{figure*}[t]
   \centering
   \includegraphics[width=0.98\textwidth]{fig02_idsize_trend.png}
-  \caption{ID クラス数 $m=2$--7 に対する pooled AUROC，FPR95，AUPR-OUT．\RSN は全18条件（6 sizes $\times$ 3 metrics）で \knn/PSM を上回る．}
+  \caption{ID クラス数 $m=2$--7 に対する pooled AUROC，FPR95，AUPR-OUT．帯は fold間95\%信頼区間．\RSN は全18条件（6 sizes $\times$ 3 metrics）で \knn を上回る．}
   \label{fig:idsize}
 \end{figure*}
 
-$m=2$ の ViT-B/14 では \RSN/\knn/PSM の AUROC は0.9107/0.9055/0.8897，ViT-L/14では0.9230/0.9197/0.9131であり，モデル規模によらず順位が一致した．全 $m$ の backbone 別でも同じ順位である．
+$m=2$ の ViT-B/14では \RSN/\knn の AUROC は0.9107/0.9055，ViT-L/14では0.9230/0.9197であり，モデル規模によらず順位が一致した．全 $m$ の backbone 別でも同じ順位である．
 
-\subsection{全22手法の横断比較（$m=2$--7）}
+\subsection{全21手法の横断比較（$m=2$--7）}
 
-表~\ref{tab:fullsweep}に各 $m$ の指標別首位と \RSN の順位を示す．\RSN は $m=2,3,4$ の全3指標で首位である．$m=5$ 以降は AUROC で OpenMax，AUPR-OUT で RMD が首位となり，$m=6,7$ の FPR95も RMD が最小となる．一方，6サイズを等重みで平均した \RSN の順位は AUROC 2.50，FPR95 1.33，AUPR-OUT 2.17であり，3指標すべてで22手法中最良である．
+表~\ref{tab:fullsweep}に各 $m$ の指標別首位と \RSN の順位を示す．\RSN は $m=2,3,4$ の全3指標で首位である．$m=5$ 以降は AUROC で OpenMax，AUPR-OUT で RMD が首位となり，$m=6,7$ の FPR95も RMD が最小となる．一方，6サイズを等重みで平均した \RSN の順位は AUROC 2.50，FPR95 1.33，AUPR-OUT 2.17であり，3指標すべてで21手法中最良である．
 
 \begin{table*}[t]
 \centering
@@ -254,7 +254,7 @@ $m$ & $n$ & \multicolumn{3}{c}{AUROC} & \multicolumn{3}{c}{FPR95} & \multicolumn
 \end{tabular}
 \end{table*}
 
-OpenMax の AUROC は $m=5,6,7$ で平均上 \RSN を上回るが，paired 差（\RSN$-$OpenMax）の95\% CIは順に $[-.0088,.0020]$，$[-.0163,.0002]$，$[-.0331,.0095]$ で0を跨ぐ．対して RMD の AUPR-OUT は $m=5,6,7$ で有意に高く，差（\RSN$-$RMD）は $-.0144$，$-.0386$，$-.0542$，各95\% CI上端も負である．したがって，\RSN の強みは少数IDクラスでの総合首位と，全サイズでの安定した低FPR95であり，高 $m$ の AUPR-OUTでは RMD に明確な優位がある．なお，$m=2$ で MSP，Entropy，GEN の平均指標は一致するが，raw score fingerprint は全 foldで異なる．全 $m$ の231手法対について raw scoreが完全一致する組はなかった．
+OpenMax の AUROC は $m=5,6,7$ で平均上 \RSN を上回るが，paired 差（\RSN$-$OpenMax）の95\% CIは順に $[-.0088,.0020]$，$[-.0163,.0002]$，$[-.0331,.0095]$ で0を跨ぐ．対して RMD の AUPR-OUT は $m=5,6,7$ で有意に高く，差（\RSN$-$RMD）は $-.0144$，$-.0386$，$-.0542$，各95\% CI上端も負である．したがって，\RSN の強みは少数IDクラスでの総合首位と，全サイズでの安定した低FPR95であり，高 $m$ の AUPR-OUTでは RMD に明確な優位がある．
 
 \subsection{主設定の選択と ablation}
 
@@ -283,31 +283,25 @@ $\ell_2$, $k=10$, top-3 & .9086 & .4522 & .9561\\
 
 \subsection{全fold paired 比較}
 
-表~\ref{tab:paired}は全 $m$ を併合した paired 結果である．FPR95については「比較手法の FPR95 $-$ \RSN の FPR95」を改善量として正値で表す．\RSN は \knn に対して平均 AUROC $+0.00556$，FPR95を0.04156改善し，PSMに対する差はさらに大きい．
+表~\ref{tab:paired}は全 $m$ を併合した \knn との paired 結果である．FPR95については「\knn の FPR95 $-$ \RSN の FPR95」を改善量として正値で表す．\RSN は平均 AUROCを$+0.00556$，AUPR-OUTを$+0.01163$改善し，FPR95を0.04156低減した．
 
 \begin{table}[t]
 \centering
 \scriptsize
 \caption{全fold paired 比較（$n=1,476$）．}
 \label{tab:paired}
-\begin{tabular}{llrrr}
+\begin{tabular}{lrrr}
 \toprule
-比較 & 指標 & 平均改善 & 95\% CI & good\\
+指標 & 平均改善 & 95\% CI & good\\
 \midrule
-\multirow{3}{*}{vs. \knn}
- & AUROC & .00556 & [.00494,.00618] & 70.0\%\\
- & FPR95 & .04156 & [.03817,.04495] & 72.2\%\\
- & AUPR & .01163 & [.01056,.01270] & 71.5\%\\
-\midrule
-\multirow{3}{*}{vs. PSM}
- & AUROC & .03091 & [.02958,.03223] & 91.6\%\\
- & FPR95 & .15711 & [.15126,.16297] & 95.7\%\\
- & AUPR & .05439 & [.05198,.05680] & 97.2\%\\
+AUROC & .00556 & [.00494,.00618] & 70.0\%\\
+FPR95 & .04156 & [.03817,.04495] & 72.2\%\\
+AUPR & .01163 & [.01056,.01270] & 71.5\%\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-18比較（6 id size $\times$ 3比較対象）を想定した Bonferroni 水準 $\alpha/18$ でも，$m=2$--6の \RSN vs. \knn は3指標で有意であった．$m=7$ は $n=48$ と小さく，\knn 比の区間が0を跨ぐため，このサイズ単独の有意性は主張しない．
+事前に定めた2比較（\knn および \RSN$-$Huber）を6 id sizeで検定する12比較に Bonferroni 補正（$\alpha/12$）を適用しても，$m=2$--6の \RSN vs. \knn は3指標で有意であった．$m=7$ は $n=48$ と小さく，\knn 比の区間が0を跨ぐため，このサイズ単独の有意性は主張しない．
 
 \subsection{未知種別の難しさ}
 
@@ -338,33 +332,47 @@ tiger   & 縞       & .9783 & .0703 & .9535\\
 \centering
 \tiny
 \setlength{\tabcolsep}{1.35pt}
-\caption{全22手法のIDクラス数別 AUROCと6サイズ平均 AUROC順位 $\bar r_A$．PSMを含み，非主設定のRSN感度profileは除く．}
+\caption{全21手法のIDクラス数別 AUROCと6サイズ平均 AUROC順位 $\bar r_A$．非主設定の感度条件は除く．}
 \label{tab:fullranking}
 \begin{tabular}{lrrrrrrr@{\hspace{3mm}}lrrrrrrr}
 \toprule
 手法 & $m{=}2$ & $m{=}3$ & $m{=}4$ & $m{=}5$ & $m{=}6$ & $m{=}7$ & $\bar r_A$ &
 手法 & $m{=}2$ & $m{=}3$ & $m{=}4$ & $m{=}5$ & $m{=}6$ & $m{=}7$ & $\bar r_A$\\
 \midrule
-\RSN & .9169 & .8965 & .8788 & .8624 & .8454 & .8224 & 2.50 & Energy & .8439 & .8660 & .8624 & .8480 & .8286 & .8049 & 10.83\\
-OpenMax & .8440 & .8738 & .8741 & .8658 & .8534 & .8343 & 3.33 & PSM & .9014 & .8718 & .8472 & .8255 & .8044 & .7774 & 11.33\\
-\knn & .9126 & .8910 & .8729 & .8565 & .8397 & .8171 & 4.17 & SCALE & .8343 & .8579 & .8533 & .8466 & .8246 & .8048 & 12.00\\
-MSP & .8440 & .8717 & .8709 & .8607 & .8475 & .8304 & 4.67 & KL-Matching & .7996 & .8335 & .8380 & .8362 & .8328 & .8227 & 12.50\\
-MaxLogit & .8440 & .8705 & .8695 & .8591 & .8456 & .8284 & 6.17 & Mahalanobis++ & .8987 & .8693 & .8449 & .8232 & .8016 & .7736 & 13.50\\
-Entropy & .8440 & .8686 & .8660 & .8530 & .8353 & .8130 & 7.83 & NCI & .7989 & .8293 & .8328 & .8250 & .8122 & .7934 & 15.83\\
-GradNorm & .8430 & .8706 & .8676 & .8525 & .8306 & .8015 & 9.33 & DICE & .8792 & .8430 & .8042 & .7644 & .7219 & .6764 & 16.00\\
-GEN & .8440 & .8679 & .8641 & .8498 & .8304 & .8068 & 9.33 & ReAct & .6006 & .6443 & .6746 & .6815 & .6760 & .7464 & 18.83\\
-RMD & .8314 & .8477 & .8479 & .8458 & .8405 & .8284 & 10.50 & ASH-S & .4879 & .5022 & .5252 & .5436 & .5347 & .5498 & 20.83\\
-ViM & .9041 & .8758 & .8502 & .8262 & .8023 & .7725 & 10.67 & ASH-P & .4934 & .5034 & .5121 & .5394 & .5384 & .5254 & 21.00\\
-Mahalanobis & .9010 & .8721 & .8479 & .8263 & .8049 & .7770 & 10.67 & ASH-B & .4957 & .5059 & .5115 & .5164 & .5010 & .5303 & 21.17\\
+\RSN & .9169 & .8965 & .8788 & .8624 & .8454 & .8224 & 2.50 & Energy & .8439 & .8660 & .8624 & .8480 & .8286 & .8049 & 10.50\\
+OpenMax & .8440 & .8738 & .8741 & .8658 & .8534 & .8343 & 3.17 & SCALE & .8343 & .8579 & .8533 & .8466 & .8246 & .8048 & 11.67\\
+\knn & .9126 & .8910 & .8729 & .8565 & .8397 & .8171 & 4.17 & KL-Matching & .7996 & .8335 & .8380 & .8362 & .8328 & .8227 & 12.00\\
+MSP & .8440 & .8717 & .8709 & .8607 & .8475 & .8304 & 4.33 & Mahalanobis++ & .8987 & .8693 & .8449 & .8232 & .8016 & .7736 & 12.50\\
+MaxLogit & .8440 & .8705 & .8695 & .8591 & .8456 & .8284 & 5.83 & DICE & .8792 & .8430 & .8042 & .7644 & .7219 & .6764 & 15.00\\
+Entropy & .8440 & .8686 & .8660 & .8530 & .8353 & .8130 & 7.50 & NCI & .7989 & .8293 & .8328 & .8250 & .8122 & .7934 & 15.17\\
+GradNorm & .8430 & .8706 & .8676 & .8525 & .8306 & .8015 & 9.00 & ReAct & .6006 & .6443 & .6746 & .6815 & .6760 & .7464 & 17.83\\
+GEN & .8440 & .8679 & .8641 & .8498 & .8304 & .8068 & 9.00 & ASH-S & .4879 & .5022 & .5252 & .5436 & .5347 & .5498 & 19.83\\
+RMD & .8314 & .8477 & .8479 & .8458 & .8405 & .8284 & 10.17 & ASH-P & .4934 & .5034 & .5121 & .5394 & .5384 & .5254 & 20.00\\
+ViM & .9041 & .8758 & .8502 & .8262 & .8023 & .7725 & 10.33 & ASH-B & .4957 & .5059 & .5115 & .5164 & .5010 & .5303 & 20.17\\
+Mahalanobis & .9010 & .8721 & .8479 & .8263 & .8049 & .7770 & 10.33 & & & & & & & & \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
 \section{分析と考察}
 
-\subsection{対角標準化と較正冗長性}
+\subsection{クラス条件付き計量が改善する距離幾何}
 
-共有形状仮定を直接確認するため，各 fold の ID validation に式~\eqref{eq:classdistance}を適用し，クラス対の経験 CDF 間 KS 統計量と，クラス平均距離の変動係数（CV）を求めた．全fold平均は KS 0.1344，CV 0.0464であった．図~\ref{fig:cdf}の代表 foldでも CDF の中心は概ね重なり，対角標準化後のクラス平均スケール差が約4.6\%まで圧縮されている．仮定は厳密ではないが，較正が補正できる残差が小さい一方，クラス別経験 CDF の有限標本誤差は残る．表~\ref{tab:ablation}で較正ありが一貫して悪化した結果と整合する．
+通常の \knn は全クラスに単位計量を用いるのに対し，\RSN はクラス $c$ ごとに $M_c=\mathrm{diag}(\sigma_c^{-2})$ を持つ．したがって，同じ特徴変位でも，姿勢や背景によって自然に変動する次元は弱く，種内で安定した次元は強く評価される．重要なのは，この不変性が全データ共通ではなくクラス条件付きである点である．フル Mahalanobis のような $O(D^2)$ 個の相関推定や大域ガウス仮定を導入せず，$O(CD)$ 個の尺度だけを推定しながら，近傍 bank の局所形状を保持できる．
+
+効果は AUROC よりも分布の裾で明瞭である．\RSN と \knn の AUROC差は全 $m$ で0.0043--0.0059と安定している一方，FPR95改善は $m=2$ の0.0319から $m=6,7$ の約0.050まで拡大した．これは全順位を大きく入れ替えるというより，クラス固有の自然変動をOODと誤認する境界付近のID標本を減らした結果と解釈できる．式~\eqref{eq:classdistance}の Huber損失の微分も $|\ell|>\delta$ で大きさが $2\delta$ に制限されるため，単一次元の偶発的偏差が二乗で支配することを防ぐ．
+
+\subsection{IDクラス数による性能レジームの変化}
+
+$m$ の増加は単なる難易度上昇ではない．ID側では支持領域と分類 head のクラス数が増え，OOD側では残る種数と組成が変わる．\RSN の \knn に対する差が全 $m$ で維持されたことは，対角標準化の効果が特定のID組合せに限られないことを示す．一方，OpenMax は $m=5$--7の平均 AUROC，RMD は $m=5$--7の AUPR-OUT と $m=6,7$ の FPR95で首位となった．
+
+この順位転換は，分類 head を利用する OpenMax がクラス数増加により相対 logit 構造を得ること，RMD の背景補正が多様なID集合から安定した参照分布を得ることと整合的である．ただし OpenMax と \RSN の AUROC差の95\% CIは0を跨ぐため，前者の優位は確定的ではない．対して高 $m$ における RMD の AUPR-OUT差は区間全体が負であり，OOD側の順位付けでは背景補正が有効な領域がある．したがって \RSN の主張は全条件での万能性ではなく，少数IDクラスでの総合性能と，全範囲で一貫した低FPR95に置くべきである．
+
+\subsection{対角標準化後の較正冗長性}
+
+各 fold の ID validation に式~\eqref{eq:classdistance}を適用し，クラス対の経験 CDF 間 KS 統計量と，クラス平均距離の変動係数（CV）を求めた．全fold平均は KS 0.1344，CV 0.0464であり，図~\ref{fig:cdf}の代表 foldでも CDF の中心は概ね重なる．すなわち，対角標準化後のクラス平均スケール差は約4.6\%まで圧縮されている．
+
+このとき各クラスのID距離分布が共通 CDF $F$ に従う近似の下では，分位点 score は $q_c(x)=1-F(r_c(x))$ であり，$\max_c q_c(x)=1-F(\min_c r_c(x))$ となる．これは式~\eqref{eq:score}の単調変換なので，母分布レベルでは順位を改善しない．一方，有限 validation からクラス別 $\hat F_c$ を推定すると，DKW境界~\cite{dkw1956}に従う $O(n_c^{-1/2})$ の誤差がクラスごとに加わる．表~\ref{tab:ablation}で較正ありが悪化したことは，補正すべき尺度差より推定分散が支配したという説明と整合する．
 
 \begin{figure}[t]
   \centering
@@ -373,27 +381,30 @@ Mahalanobis & .9010 & .8721 & .8479 & .8263 & .8049 & .7770 & 10.67 & ASH-B & .4
   \label{fig:cdf}
 \end{figure}
 
-\subsection{Huber 化の役割}
+\subsection{Huber化と失敗モード}
 
-Huber 化は全体平均では小さいが安定した改善を与える．未知種別には差があり，全 $m$ 集計で cheetah は AUROC $+0.0011$，tiger と lion は約 $+0.0006$，leopard は $-0.0003$ であった．これは，広い次元に分散した OOD 信号では単一座標ノイズの抑制が有効だが，少数次元へ集中した信号では線形化が検出力も抑えうるというトレードオフを示す．したがって Huber は主役の効果ではなく，対角標準化を安定化する小さな補助要素と位置づける．
+Huber化は全体平均では小さいが安定した改善を与える．未知種別には差があり，全 $m$ 集計で cheetah は AUROC $+0.0011$，tiger と lion は約 $+0.0006$，leopard は $-0.0003$ であった．広い次元へ分散したOOD信号では単一座標ノイズの抑制が有効だが，少数次元に集中した信号では線形化が検出力も抑えうる．したがって Huber は主効果ではなく，対角標準化を安定化する補助要素と位置づけられる．
 
-\subsection{なぜ生特徴・全クラスが効くか}
+per-OOD-class結果は，距離標準化だけでは解けない限界も示す．tiger の AUROC 0.978に対し，jaguar，leopard，ocelot は0.840--0.847である．ロゼット模様を共有する種では，意味的には別種でも DINOv2 の局所支持が重なり，標準化後距離そのものが小さくなる．この場合，どの集約関数も失われた種識別情報を復元できない．改善には，部位対応，毛皮模様の局所表現，階層分類情報など，backbone側の表現を変える必要がある．
 
-DINOv2 特徴ノルムは画像品質，背景，対象の可視性などを含む可能性がある．$\ell_2$ 正規化は角度情報へ限定するため，超近接種を分ける補助信号も除去しうる．また top-3 候補制限は計算量を減らすが，未知入力に対する ridge head の誤順位を score へ持ち込む．本稿の主設定は両者を避ける．ただし表~\ref{tab:ablation}の別設定は3要因を同時に変えるため，どの要因が支配的かを確定するには raw/$\ell_2$，$k$，候補数を独立に振る追加実験が必要である．
+\subsection{生特徴・全クラス候補の含意}
+
+DINOv2 特徴ノルムは画像品質，背景，対象の可視性などを含む可能性があり，$\ell_2$ 正規化は超近接種を分ける補助信号も除去しうる．また top-3候補制限は計算量を減らす一方，未知入力に対する ridge head の誤順位を scoreへ持ち込む．全クラス候補を用いる主設定は分類 headから独立し，問い合わせ当たりの主要計算量は通常の全bank \knn と同じ $O(ND)$，追加の Huber 集約は $O(CkD)$ である．ただし表~\ref{tab:ablation}の感度条件は正規化，$k$，候補数を同時に変えるため，各要因の因果的寄与を分離したものではない．
 
 \section{限界}
 
-本研究には次の限界がある．第一に，単一のネコ科8種に限定しており，他科・他ドメインへの外的妥当性は未確認である．第二に，ウェブ収集画像を自動・目視規則でクリーニングしたが，細かな誤ラベルや低品質画像が残る可能性がある．第三に，$m=7$ は48 foldと少なく，高 $m$ の手法差に対する区間は広い．第四に，ODIN と CLIP 系を無理に cached DINOv2 特徴へ移植せず除外したため，別 encoder を含む横断比較ではない．第五に，fold 間は同じ画像集合を異なる ID/OOD 組合せで再利用するため完全独立ではなく，paired CI は設定間依存を過小評価しうる．
+本研究には次の限界がある．第一に，単一のネコ科8種とDINOv2特徴に限定しており，他分類群・他domain・他backboneへの外的妥当性は未確認である．第二に，ウェブ収集画像を自動・目視規則でクリーニングしたが，細かな誤ラベルや低品質画像が残る可能性がある．第三に，$m=7$ は48 foldと少なく，高 $m$ の手法差に対する区間は広い．第四に，同じ画像集合を異なるID/OOD組合せで再利用するため fold は完全独立ではなく，$t$近似の paired CI は設定間依存を過小評価しうる．第五に，特徴ノルムやロゼット種の解釈は観測結果と整合する仮説であり，局所部位介入などによる因果的検証ではない．
 
 \section{結論}
 
-超近接 OOD に対し，クラス条件付き次元別標準化と Huber 集約を用いる \RSN を提示した．クリーニング後105,554枚，$m=2$--7の全1,476 fold・22手法比較で，\RSN は \knn と PSM を一貫して上回り，3指標すべての平均順位で首位となった．ただし全条件で首位ではなく，$m=5$--7の AUROCでは OpenMax，AUPR-OUTでは RMD が強い．この結果は，\RSN を低FPR95かつIDクラス数に比較的頑健な手法として位置づけると同時に，評価範囲全体を示す重要性を示している．
+超近接 OOD に対し，クラス条件付き次元別標準化と Huber 集約を用いる \RSN を提示した．クリーニング後105,554枚，$m=2$--7の全1,476 fold・21手法比較で，\RSN は \knn を全18条件で上回り，3指標すべての平均順位で首位となった．改善は特にFPR95で大きく，クラス固有の自然変動を境界付近で誤検出する問題への有効性を示す．一方，高 $m$ の AUROCでは OpenMax，AUPR-OUTでは RMD が強く，\RSN が全条件で最良ではないことも確認した．今後は分類群とbackboneを拡張し，ロゼット種のように局所支持が重なる失敗例へ部位・階層表現を導入する必要がある．
 
 \appendix
 \section{再現用設定}
 
 主設定は \texttt{normalize=false, k=150, delta=1.345, min\_std=1e-3, candidate=all, calibrated=false} である．評価単位は \texttt{backbone, seed, id\_size, id\_set} の組であり，fold-level CSV は同じ単位で手法を paired に結合できる．検証済み実装は \texttt{src/maf07/methods/verified\_baselines.py}，全サイズ runner，完全性監査，集計はそれぞれ \texttt{scripts/run\_verified\_baseline\_sweep\_hades.sh}，\texttt{audit\_verified\_baseline\_sweep.py}，\texttt{aggregate\_verified\_baseline\_sweep.py} に保存した．完全なCSVは \texttt{docs/results/rsn\_baseline\_full\_20260711/} に置く．
 
+{\footnotesize
 \begin{thebibliography}{99}
 
 \bibitem{hendrycks2017baseline}
@@ -472,5 +483,6 @@ A. Dvoretzky, J. Kiefer, and J. Wolfowitz,
 \textit{The Annals of Mathematical Statistics}, vol. 27, no. 3, 1956.
 
 \end{thebibliography}
+}
 
 \end{document}

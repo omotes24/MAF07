@@ -22,7 +22,7 @@ condition.
   `docs/BASELINE_AUDIT.md`
 
 The all-method sweep covers both DINOv2 backbones, three seeds, every ID-set
-combination, 1,476 folds, and 32,472 verified jobs. The PSM-merged ranking and
+combination, 1,476 folds, and 32,472 verified jobs. The 21-method ranking and
 paired statistics are under the result directory's `aggregated/` subdirectory.
 
 ## Rebuild figures

@@ -47,9 +47,6 @@ id_size,method_a,method_b,metric,n,mean_diff,ci_low,ci_high,good_rate
 2,rsn_reported,openmax,AUROC,168,0.072875,0.061386,0.084363,0.845238
 2,rsn_reported,openmax,FPR95,168,0.09856,0.059093,0.138027,0.630952
 2,rsn_reported,openmax,AUPR_OUT,168,0.023419,0.018025,0.028813,0.720238
-2,rsn_reported,psm,AUROC,168,0.015446,0.012927,0.017965,0.767857
-2,rsn_reported,psm,FPR95,168,0.109594,0.09407,0.125119,0.857143
-2,rsn_reported,psm,AUPR_OUT,168,0.011408,0.009741,0.013075,0.869048
 2,rsn_reported,react,AUROC,168,0.316276,0.294015,0.338537,1.0
 2,rsn_reported,react,FPR95,168,0.464221,0.432066,0.496376,0.970238
 2,rsn_reported,react,AUPR_OUT,168,0.17026,0.157052,0.183468,1.0
@@ -110,9 +107,6 @@ id_size,method_a,method_b,metric,n,mean_diff,ci_low,ci_high,good_rate
 3,rsn_reported,openmax,AUROC,336,0.022682,0.015801,0.029562,0.574405
 3,rsn_reported,openmax,FPR95,336,0.074519,0.05013,0.098909,0.651786
 3,rsn_reported,openmax,AUPR_OUT,336,0.00987,0.004099,0.015642,0.553571
-3,rsn_reported,psm,AUROC,336,0.024704,0.022448,0.02696,0.869048
-3,rsn_reported,psm,FPR95,336,0.146316,0.135938,0.156694,0.973214
-3,rsn_reported,psm,AUPR_OUT,336,0.030305,0.027792,0.032817,0.955357
 3,rsn_reported,react,AUROC,336,0.252203,0.23594,0.268465,0.967262
 3,rsn_reported,react,FPR95,336,0.371463,0.348329,0.394597,0.946429
 3,rsn_reported,react,AUPR_OUT,336,0.197461,0.184871,0.210051,0.949405
@@ -173,9 +167,6 @@ id_size,method_a,method_b,metric,n,mean_diff,ci_low,ci_high,good_rate
 4,rsn_reported,openmax,AUROC,420,0.004671,-0.0005,0.009843,0.457143
 4,rsn_reported,openmax,FPR95,420,0.063064,0.043922,0.082205,0.607143
 4,rsn_reported,openmax,AUPR_OUT,420,0.000853,-0.005815,0.007522,0.497619
-4,rsn_reported,psm,AUROC,420,0.031623,0.029379,0.033867,0.935714
-4,rsn_reported,psm,FPR95,420,0.166107,0.156469,0.175745,0.990476
-4,rsn_reported,psm,AUPR_OUT,420,0.054392,0.050922,0.057861,1.0
 4,rsn_reported,react,AUROC,420,0.204165,0.18791,0.22042,0.9
 4,rsn_reported,react,FPR95,420,0.286993,0.26391,0.310075,0.864286
 4,rsn_reported,react,AUPR_OUT,420,0.197157,0.181855,0.212459,0.878571
@@ -236,9 +227,6 @@ id_size,method_a,method_b,metric,n,mean_diff,ci_low,ci_high,good_rate
 5,rsn_reported,openmax,AUROC,336,-0.003399,-0.0088,0.002002,0.407738
 5,rsn_reported,openmax,FPR95,336,0.061139,0.041387,0.080891,0.627976
 5,rsn_reported,openmax,AUPR_OUT,336,-0.004254,-0.013411,0.004902,0.440476
-5,rsn_reported,psm,AUROC,336,0.036853,0.03403,0.039675,0.985119
-5,rsn_reported,psm,FPR95,336,0.172456,0.160614,0.184297,0.997024
-5,rsn_reported,psm,AUPR_OUT,336,0.077637,0.072613,0.082661,1.0
 5,rsn_reported,react,AUROC,336,0.180906,0.162345,0.199467,0.857143
 5,rsn_reported,react,FPR95,336,0.243645,0.219074,0.268216,0.854167
 5,rsn_reported,react,AUPR_OUT,336,0.199415,0.18012,0.21871,0.85119
@@ -299,9 +287,6 @@ id_size,method_a,method_b,metric,n,mean_diff,ci_low,ci_high,good_rate
 6,rsn_reported,openmax,AUROC,168,-0.008031,-0.016284,0.000223,0.416667
 6,rsn_reported,openmax,FPR95,168,0.052664,0.026832,0.078497,0.541667
 6,rsn_reported,openmax,AUPR_OUT,168,-0.009132,-0.023802,0.005538,0.416667
-6,rsn_reported,psm,AUROC,168,0.041032,0.036326,0.045737,0.97619
-6,rsn_reported,psm,FPR95,168,0.172588,0.150408,0.194767,0.928571
-6,rsn_reported,psm,AUPR_OUT,168,0.090672,0.081881,0.099464,1.0
 6,rsn_reported,react,AUROC,168,0.169358,0.142384,0.196332,0.815476
 6,rsn_reported,react,FPR95,168,0.228885,0.189298,0.268472,0.833333
 6,rsn_reported,react,AUPR_OUT,168,0.20096,0.168508,0.233411,0.809524
@@ -362,9 +347,6 @@ id_size,method_a,method_b,metric,n,mean_diff,ci_low,ci_high,good_rate
 7,rsn_reported,openmax,AUROC,48,-0.011825,-0.033134,0.009483,0.5
 7,rsn_reported,openmax,FPR95,48,0.021218,-0.025917,0.068353,0.375
 7,rsn_reported,openmax,AUPR_OUT,48,-0.008903,-0.033539,0.015732,0.333333
-7,rsn_reported,psm,AUROC,48,0.045058,0.032648,0.057468,0.895833
-7,rsn_reported,psm,FPR95,48,0.158744,0.097149,0.220339,0.708333
-7,rsn_reported,psm,AUPR_OUT,48,0.083703,0.060966,0.10644,0.916667
 7,rsn_reported,react,AUROC,48,0.076016,0.03107,0.120962,0.729167
 7,rsn_reported,react,FPR95,48,0.12916,0.04588,0.212439,0.5
 7,rsn_reported,react,AUPR_OUT,48,0.100622,0.043404,0.15784,0.604167

@@ -2,7 +2,7 @@
   "complete": true,
   "duplicate_rows": 0,
   "extra_methods": [],
-  "fold_rows": 33948,
+  "fold_rows": 32472,
   "id_sizes": [
     2,
     3,
@@ -11,7 +11,6 @@
     6,
     7
   ],
-  "method_count": 23,
   "methods": [
     "ashb",
     "ashp",
@@ -29,7 +28,6 @@
     "msp",
     "nci",
     "openmax",
-    "psm",
     "react",
     "rmd",
     "rsn_paper",
@@ -38,5 +36,7 @@
     "vim"
   ],
   "missing_method_id_size_pairs": [],
-  "nonfinite_rows": 0
+  "nonfinite_rows": 0,
+  "ranking_method_count": 21,
+  "verified_profile_count": 22
 }

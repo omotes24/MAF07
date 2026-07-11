@@ -174,54 +174,38 @@ def _paired_rsn_vs_all(frame: pd.DataFrame) -> pd.DataFrame:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--verified-fold", required=True)
-    parser.add_argument("--psm-fold", required=True)
     parser.add_argument("--id-sizes", default="2,3,4,5,6,7")
     parser.add_argument("--verified-methods", default=DEFAULT_VERIFIED_METHODS)
     parser.add_argument("--output-dir", required=True)
     args = parser.parse_args(argv)
 
     verified = pd.read_csv(args.verified_fold)
-    psm_source = pd.read_csv(args.psm_fold)
     id_sizes = _parse_ints(args.id_sizes)
-    expected_methods = _parse_strings(args.verified_methods) + ["psm"]
+    expected_methods = _parse_strings(args.verified_methods)
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     required_verified = set(KEY_COLUMNS + METRICS + ["implementation_version"])
-    required_psm = set(KEY_COLUMNS + METRICS)
     if missing := sorted(required_verified - set(verified.columns)):
         raise SystemExit(f"Verified fold CSV is missing columns: {missing}")
-    if missing := sorted(required_psm - set(psm_source.columns)):
-        raise SystemExit(f"PSM fold CSV is missing columns: {missing}")
 
-    verified = verified[
+    frame = verified[
         verified["id_size"].isin(id_sizes)
         & verified["implementation_version"].eq("verified_v1")
     ].copy()
-    psm = psm_source[
-        psm_source["id_size"].isin(id_sizes)
-        & psm_source["method"].eq("psm")
-    ].copy()
-    verified["source"] = "verified_v1"
-    psm["source"] = "cleaned_psm"
-    combined_columns = KEY_COLUMNS + METRICS + ["source"]
-    combined = pd.concat(
-        [verified[combined_columns], psm[combined_columns]],
-        ignore_index=True,
-    )
 
-    duplicate_rows = int(combined.duplicated(KEY_COLUMNS, keep=False).sum())
+    duplicate_rows = int(frame.duplicated(KEY_COLUMNS, keep=False).sum())
     nonfinite_rows = int(
-        (~np.isfinite(combined[METRICS].to_numpy(dtype=np.float64))).any(axis=1).sum()
+        (~np.isfinite(frame[METRICS].to_numpy(dtype=np.float64))).any(axis=1).sum()
     )
-    combined = combined.drop_duplicates(KEY_COLUMNS, keep="last")
-    methods = sorted(combined["method"].unique())
+    frame = frame.drop_duplicates(KEY_COLUMNS, keep="last")
+    methods = sorted(frame["method"].unique())
     expected_folds = {
         id_size: math.comb(8, id_size) * 3 * 2
         for id_size in id_sizes
     }
     coverage = (
-        combined.groupby(["id_size", "method"])
+        frame.groupby(["id_size", "method"])
         .size()
         .rename("completed_folds")
         .reset_index()
@@ -240,12 +224,11 @@ def main(argv: list[str] | None = None) -> int:
         and nonfinite_rows == 0
     )
 
-    summary = _summarize(combined)
+    summary = _summarize(frame)
     ranking, mean_ranking = _rankings(summary)
     metric_ranking, mean_metric_rank = _metric_rankings(summary)
-    paired = _paired_rsn_vs_all(combined)
-    combined.to_csv(output_dir / "fold_level_verified_with_psm.csv", index=False)
-    summary.to_csv(output_dir / "summary_verified_with_psm.csv", index=False)
+    paired = _paired_rsn_vs_all(frame)
+    summary.to_csv(output_dir / "summary_verified.csv", index=False)
     ranking.to_csv(output_dir / "ranking_by_id_size.csv", index=False)
     mean_ranking.to_csv(output_dir / "mean_ranking_m2_m7.csv", index=False)
     metric_ranking.to_csv(output_dir / "metric_ranking_by_id_size.csv", index=False)
@@ -257,8 +240,9 @@ def main(argv: list[str] | None = None) -> int:
         "complete": complete,
         "id_sizes": id_sizes,
         "methods": methods,
-        "method_count": len(methods),
-        "fold_rows": int(len(combined)),
+        "verified_profile_count": len(methods),
+        "ranking_method_count": len(set(methods) - MAIN_RANKING_EXCLUDES),
+        "fold_rows": int(len(frame)),
         "duplicate_rows": duplicate_rows,
         "nonfinite_rows": nonfinite_rows,
         "missing_method_id_size_pairs": [

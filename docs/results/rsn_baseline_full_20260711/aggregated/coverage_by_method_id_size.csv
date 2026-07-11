@@ -15,7 +15,6 @@ id_size,method,completed_folds,expected_folds,complete
 2,msp,168,168,True
 2,nci,168,168,True
 2,openmax,168,168,True
-2,psm,168,168,True
 2,react,168,168,True
 2,rmd,168,168,True
 2,rsn_paper,168,168,True
@@ -38,7 +37,6 @@ id_size,method,completed_folds,expected_folds,complete
 3,msp,336,336,True
 3,nci,336,336,True
 3,openmax,336,336,True
-3,psm,336,336,True
 3,react,336,336,True
 3,rmd,336,336,True
 3,rsn_paper,336,336,True
@@ -61,7 +59,6 @@ id_size,method,completed_folds,expected_folds,complete
 4,msp,420,420,True
 4,nci,420,420,True
 4,openmax,420,420,True
-4,psm,420,420,True
 4,react,420,420,True
 4,rmd,420,420,True
 4,rsn_paper,420,420,True
@@ -84,7 +81,6 @@ id_size,method,completed_folds,expected_folds,complete
 5,msp,336,336,True
 5,nci,336,336,True
 5,openmax,336,336,True
-5,psm,336,336,True
 5,react,336,336,True
 5,rmd,336,336,True
 5,rsn_paper,336,336,True
@@ -107,7 +103,6 @@ id_size,method,completed_folds,expected_folds,complete
 6,msp,168,168,True
 6,nci,168,168,True
 6,openmax,168,168,True
-6,psm,168,168,True
 6,react,168,168,True
 6,rmd,168,168,True
 6,rsn_paper,168,168,True
@@ -130,7 +125,6 @@ id_size,method,completed_folds,expected_folds,complete
 7,msp,48,48,True
 7,nci,48,48,True
 7,openmax,48,48,True
-7,psm,48,48,True
 7,react,48,48,True
 7,rmd,48,48,True
 7,rsn_paper,48,48,True

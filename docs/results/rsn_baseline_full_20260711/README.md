@@ -8,12 +8,11 @@ This directory contains the completed fair-protocol DINOv2 baseline sweep for
 - Backbones: DINOv2 ViT-B/14 and ViT-L/14
 - Seeds: `0,1,2`
 - ID sets: every combination of 8 species for each ID-set size
-- Verified feature-cache methods: 22 entries, including the reported RSN and
-  its sensitivity profile
-- PSM: merged from the matching cleaned fold-level run
+- Verified feature-cache profiles: primary RSN, 20 baselines, and one RSN
+  sensitivity condition
 - Scope: fair only; no OOD train or validation samples are used
 
-| ID classes | folds | verified methods | jobs |
+| ID classes | folds | verified profiles | jobs |
 |---:|---:|---:|---:|
 | 2 | 168 | 22 | 3,696 |
 | 3 | 336 | 22 | 7,392 |
@@ -24,9 +23,8 @@ This directory contains the completed fair-protocol DINOv2 baseline sweep for
 | **Total** | **1,476** | **22** | **32,472** |
 
 `coverage_report.json` records `complete=true`, with no missing, duplicate,
-extra, or non-finite jobs. The PSM-merged aggregate contains 33,948 method-fold
-rows and 23 method/configuration identifiers. The main rankings exclude the
-non-primary `rsn_paper` sensitivity profile, leaving 22 methods.
+extra, or non-finite jobs. The main rankings exclude the non-primary RSN
+sensitivity condition, leaving 21 methods over 1,476 folds.
 
 ## Main result
 
@@ -43,7 +41,7 @@ the lowest FPR95 for `m=6,7`. The fold-paired confidence intervals are in
 - `summary_verified.csv`: backbone-specific and pooled verified summaries
 - `equivalence_audit.csv`: raw-score and metric identity checks
 - `coverage_report.json`: exact expected/completed-job audit
-- `aggregated/summary_verified_with_psm.csv`: PSM-merged summary
+- `aggregated/summary_verified.csv`: verified backbone-specific and pooled summary
 - `aggregated/ranking_by_id_size.csv`: pooled AUROC ranking for each `m`
 - `aggregated/metric_ranking_by_id_size.csv`: ranking for every metric and `m`
 - `aggregated/mean_metric_rank_m2_m7.csv`: mean metric ranks over all six sizes
@@ -55,6 +53,5 @@ the lowest FPR95 for `m=6,7`. The fold-paired confidence intervals are in
 bash scripts/run_verified_baseline_sweep_hades.sh
 python scripts/aggregate_verified_baseline_sweep.py \
   --verified-fold results/hades_results/rsn_baseline_full_20260711/fold_level_verified.csv \
-  --psm-fold results/hades_results/rsn_cleaned_20260708/fold_level.csv \
   --output-dir results/hades_results/rsn_baseline_full_20260711/aggregated
 ```
