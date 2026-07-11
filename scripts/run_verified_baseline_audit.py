@@ -157,7 +157,7 @@ def _summarize(results_path: Path, summary_path: Path, equivalence_path: Path) -
         index=False,
     )
 
-    keys = ["backbone", "seed", "id_set_id"]
+    keys = ["backbone", "seed", "id_size", "id_set_id"]
     methods = sorted(frame["method"].unique())
     equivalence_rows = []
     for method_a, method_b in itertools.combinations(methods, 2):
