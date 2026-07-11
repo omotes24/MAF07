@@ -11,6 +11,9 @@ The default output root is
 `results/hades_results/rsn_reviewer_20260712`. All CSV writers use file locks,
 and completed method/fold jobs are skipped on restart.
 
+Install the approximate-neighbor audit dependency with
+`pip install -e '.[audit]'`; the main scoring run does not require FAISS.
+
 ## 1. Matched factor decomposition
 
 `scripts/run_rsn_reviewer_suite.py` evaluates matched controls on the same fold,

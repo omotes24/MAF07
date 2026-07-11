@@ -108,6 +108,11 @@ def _feature_pairs(
         similarity, indices = index.search(values, max(2, int(neighbors) + 1))
         engine = "faiss_hnsw_ip"
     except ImportError:
+        if len(values) > 20_000:
+            raise RuntimeError(
+                "FAISS is required for the full near-duplicate audit; install "
+                "the project with the 'audit' extra."
+            )
         from sklearn.neighbors import NearestNeighbors
 
         model = NearestNeighbors(
