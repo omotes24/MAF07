@@ -125,8 +125,13 @@ def idsize_trend_figure() -> None:
     pooled = main[(main["backbone"] == "ALL") & main["method"].isin(methods)].copy()
     pooled["label"] = pooled["method"].map(methods)
 
-    fig, axes = plt.subplots(1, 2, figsize=(8.4, 3.45))
-    for metric, ax, better in [("AUROC", axes[0], "higher is better"), ("FPR95", axes[1], "lower is better")]:
+    fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.45))
+    panels = [
+        ("AUROC", axes[0], "higher is better"),
+        ("FPR95", axes[1], "lower is better"),
+        ("AUPR_OUT", axes[2], "higher is better"),
+    ]
+    for metric, ax, better in panels:
         for label in ("RSN", "KNN", "PSM"):
             block = pooled[pooled["label"] == label].sort_values("id_size")
             ax.plot(
@@ -140,8 +145,9 @@ def idsize_trend_figure() -> None:
             )
         ax.set_xticks(range(2, 8))
         ax.set_xlabel("number of ID classes m")
-        ax.set_ylabel(metric)
-        ax.set_title(f"{metric} ({better})")
+        label = "AUPR-OUT" if metric == "AUPR_OUT" else metric
+        ax.set_ylabel(label)
+        ax.set_title(f"{label} ({better})")
         ax.grid(alpha=0.22)
     axes[0].legend(frameon=False, loc="lower left")
 

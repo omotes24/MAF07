@@ -31,7 +31,7 @@
 \maketitle
 
 \begin{abstract}
-同一分類群内の超近接 OOD 検知では，既知種と未知種の特徴が重なりやすい．本稿では，クラス別の次元標準偏差による正規化と Huber 集約を組み合わせた \RSN を提案する．ネコ科8種・105,554枚，1,476 foldの評価で全 ID クラス数において \knn と PSM を上回り，$m=2$ で AUROC 0.9169，FPR95 0.4307，AUPR-OUT 0.9590を達成した．
+同一分類群内の超近接 OOD 検知では，既知種と未知種の特徴が重なりやすい．本稿では，クラス別の次元標準偏差による正規化と Huber 集約を組み合わせた \RSN を提案する．ネコ科8種・105,554枚，ID クラス数 $m=2$--7の全1,476 foldで \knn と PSM を一貫して上回り，\knn に対する平均改善は AUROC $+0.00556$，FPR95 $-0.04156$ であった．
 \end{abstract}
 
 \section{はじめに}
@@ -195,14 +195,48 @@ OOD を positive とし，AUROC$\good$，FPR95$\low$，AUPR-OUT$\good$ を報告
 
 \section{結果}
 
-\subsection{検証済み $m=2$ 比較}
+\subsection{ID クラス数 $m=2$--7 の主結果}
 
-表~\ref{tab:verifiedtop}に，実装監査後の $m=2$ 結果を示す．\RSN は3指標すべてで最良であり，\knn に対して AUROC $+0.00426$，FPR95 $-0.03192$，AUPR-OUT $+0.00302$ である．特徴距離系では ViM，Mahalanobis，Mahalanobis++ が続く．
+表~\ref{tab:idsize}および図~\ref{fig:idsize}に，$m=2,3,4,5,6,7$ の全結果を示す．これは本研究の主比較であり，合計1,476 foldを含む．\RSN はすべての $m$ で，\knn と PSM の両方に対して AUROC と AUPR-OUT が高く，FPR95 が低い．ID クラスが増えるほど OOD 側の残りクラスが減り，難しいロゼット種が評価に占める組合せ効果も強くなるため，全手法の絶対性能は低下する．ただし相対順位は維持される．
+
+\begin{table*}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\caption{ID クラス数 $m=2$--7 の主比較（2 backbone pooled）．A=AUROC，F=FPR95，P=AUPR-OUT．太字は各 $m$ の最良値．}
+\label{tab:idsize}
+\begin{tabular}{crrrrrrrrrrr}
+\toprule
+$m$ & $n$ & \multicolumn{3}{c}{\RSN} & \multicolumn{3}{c}{\knn} & \multicolumn{3}{c}{PSM}\\
+ & & A & F & P & A & F & P & A & F & P\\
+\midrule
+2 & 168 & \textbf{.9169} & \textbf{.4307} & \textbf{.9590} & .9126 & .4626 & .9560 & .9014 & .5403 & .9476\\
+3 & 336 & \textbf{.8965} & \textbf{.5005} & \textbf{.9125} & .8910 & .5373 & .9053 & .8718 & .6468 & .8822\\
+4 & 420 & \textbf{.8788} & \textbf{.5528} & \textbf{.8431} & .8729 & .5951 & .8311 & .8472 & .7189 & .7887\\
+5 & 336 & \textbf{.8624} & \textbf{.5952} & \textbf{.7418} & .8565 & .6401 & .7255 & .8255 & .7677 & .6641\\
+6 & 168 & \textbf{.8454} & \textbf{.6336} & \textbf{.5953} & .8397 & .6835 & .5775 & .8044 & .8062 & .5046\\
+7 &  48 & \textbf{.8224} & \textbf{.6857} & \textbf{.3881} & .8171 & .7355 & .3729 & .7774 & .8445 & .3044\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=0.98\textwidth]{fig02_idsize_trend.png}
+  \caption{ID クラス数 $m=2$--7 に対する pooled AUROC，FPR95，AUPR-OUT．\RSN は全18条件（6 sizes $\times$ 3 metrics）で比較手法を上回る．}
+  \label{fig:idsize}
+\end{figure*}
+
+$m=2$ の ViT-B/14 では \RSN/\knn/PSM の AUROC は0.9107/0.9055/0.8897，ViT-L/14では0.9230/0.9197/0.9131であり，モデル規模によらず順位が一致した．全 $m$ の backbone 別でも同じ順位である．
+
+\subsection{追加ベースラインとの横断比較（$m=2$）}
+
+多数の既存手法を同一 fold で再実行した横断比較は $m=2$ で行った．表~\ref{tab:verifiedtop}に上位結果を示す．\RSN は3指標すべてで最良であり，\knn に対して AUROC $+0.00426$，FPR95 $-0.03192$，AUPR-OUT $+0.00302$ である．特徴距離系では ViM，Mahalanobis，Mahalanobis++ が続く．
 
 \begin{table}[t]
 \centering
 \footnotesize
-\caption{検証済み上位手法（$m=2$, pooled, $n=168$）．}
+\caption{追加ベースラインとの上位比較（$m=2$, pooled, $n=168$）．}
 \label{tab:verifiedtop}
 \begin{tabular}{clrrr}
 \toprule
@@ -219,39 +253,6 @@ OOD を positive とし，AUROC$\good$，FPR95$\low$，AUPR-OUT$\good$ を報告
 \end{table}
 
 MSP，Entropy，GEN は平均3指標が同じ値（AUROC 0.8440）になったが，raw score fingerprint は全168 foldで異なる．ID が2クラスの場合，これらは同じ絶対 logit margin の単調関数になり，二値 OOD ranking が一致しうるためである．Mahalanobis と Mahalanobis++ は raw score・評価指標ともに異なる．
-
-\subsection{ID クラス数と backbone}
-
-表~\ref{tab:idsize}および図~\ref{fig:idsize}に全 $m$ の結果を示す．\RSN は $m=2$ から7まで，\knn と PSM の両方に対して AUROC が高く，FPR95 が低い．ID クラスが増えるほど OOD 側の残りクラスが減り，難しいロゼット種が評価に占める組合せ効果も強くなるため，全手法の絶対性能は低下する．ただし相対順位は維持される．
-
-\begin{table*}[t]
-\centering
-\scriptsize
-\caption{ID クラス数別の主比較（2 backbone pooled）．A=AUROC，F=FPR95．}
-\label{tab:idsize}
-\begin{tabular}{crrrrrrr}
-\toprule
-$m$ & $n$ & \multicolumn{2}{c}{\RSN} & \multicolumn{2}{c}{\knn} & \multicolumn{2}{c}{PSM}\\
- & & A & F & A & F & A & F\\
-\midrule
-2 & 168 & .9169 & .4307 & .9126 & .4626 & .9014 & .5403\\
-3 & 336 & .8965 & .5005 & .8910 & .5373 & .8718 & .6468\\
-4 & 420 & .8788 & .5528 & .8729 & .5951 & .8472 & .7189\\
-5 & 336 & .8624 & .5952 & .8565 & .6401 & .8255 & .7677\\
-6 & 168 & .8454 & .6336 & .8397 & .6835 & .8044 & .8062\\
-7 &  48 & .8224 & .6857 & .8171 & .7355 & .7774 & .8445\\
-\bottomrule
-\end{tabular}
-\end{table*}
-
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=0.82\textwidth]{fig02_idsize_trend.png}
-  \caption{ID クラス数 $m$ に対する pooled AUROC（左）と FPR95（右）．\RSN は全 $m$ で比較手法を上回る．}
-  \label{fig:idsize}
-\end{figure*}
-
-$m=2$ の ViT-B/14 では \RSN/\knn/PSM の AUROC は0.9107/0.9055/0.8897，ViT-L/14では0.9230/0.9197/0.9131であり，モデル規模によらず順位が一致した．全 $m$ の backbone 別でも同じ順位である．
 
 \subsection{主設定の選択と ablation}
 
@@ -358,15 +359,12 @@ DINOv2 特徴ノルムは画像品質，背景，対象の可視性などを含�
 
 \section{結論}
 
-超近接 OOD に対し，クラス条件付き次元別標準化と Huber 集約を用いる \RSN を提示した．主設定は raw DINOv2 特徴，$k=150$，全 ID クラス，$\delta=1.345$，較正なしである．クリーニング後105,554枚の全1,476 foldで，\RSN は全 ID クラス数にわたり \knn と PSM を上回り，$m=2$ の検証済み全手法表でも最良だった．
+超近接 OOD に対し，クラス条件付き次元別標準化と Huber 集約を用いる \RSN を提示した．主設定は raw DINOv2 特徴，$k=150$，全 ID クラス，$\delta=1.345$，較正なしである．クリーニング後105,554枚，$m=2$--7の全1,476 foldで，\RSN は \knn と PSM を一貫して上回った．さらに，$m=2$ で追加実行した多数のベースラインとの横断比較でも最良だった．
 
-\appendix
-\section{補足結果}
-
-\begin{table*}[t]
+\begin{table*}[!t]
 \centering
 \scriptsize
-\caption{$m=2$ の検証済み全手法ランキング．}
+\caption{$m=2$ で追加実行したベースラインを含む全手法ランキング．}
 \label{tab:fullranking}
 \begin{tabular}{clrrr@{\hspace{9mm}}clrrr}
 \toprule
@@ -387,6 +385,7 @@ DINOv2 特徴ノルムは画像品質，背景，対象の可視性などを含�
 \end{tabular}
 \end{table*}
 
+\appendix
 \section{再現用設定}
 
 主設定は \texttt{normalize=false, k=150, delta=1.345, min\_std=1e-3, candidate=all, calibrated=false} である．評価単位は \texttt{backbone, seed, id\_size, id\_set} の組であり，fold-level CSV は同じ単位で手法を paired に結合できる．検証済み実装は \texttt{src/maf07/methods/verified\_baselines.py}，監査 runner は \texttt{scripts/run\_verified\_baseline\_audit.py} に保存した．
