@@ -1,7 +1,8 @@
 # DINOv2 Baseline Implementation Audit
 
-Audit target: the `m=2`, fair, DINOv2 table in `RSN_preview_2.pdf` and the code
-that generated `docs/results/rsn_cleaned_20260708/C_full_ranking.csv`.
+Audit target: the fair-protocol DINOv2 ranking for every ID-set size
+`m=2,3,4,5,6,7`, together with the code that generated the original `m=2`
+table in `docs/results/rsn_cleaned_20260708/C_full_ranking.csv`.
 
 ## Conclusion
 
@@ -10,8 +11,9 @@ Some equal results are mathematically expected for two-class ID heads, but the
 audit also found implementation errors and methods that cannot be computed from
 cached DINOv2 features under their original names.
 
-Do not overwrite the archived CSV. The corrected rerun writes to a new directory
-and uses `implementation_version=verified_v1`.
+Do not overwrite the archived CSV. The corrected full rerun is stored in
+`docs/results/rsn_baseline_full_20260711/` and uses
+`implementation_version=verified_v1`.
 
 ## Findings and actions
 
@@ -57,21 +59,17 @@ MCM and CLIP zero-shot MSP are not independent algorithms when both mean the
 maximum softmax over the same CLIP image-text similarities. One row is enough in
 a genuine CLIP experiment.
 
-## Paper/implementation mismatches
+## Paper/implementation alignment
 
-The PDF says that RSN uses L2-normalized DINOv2 features, `k=10`, and top-3
-classifier candidates. The archived run used unnormalized features, `k=150`,
-and all classes. The rerun therefore includes both `rsn_paper` and
-`rsn_reported`; only the former matches the PDF definition.
+`docs/paper/RSN_revised.tex` now defines the primary RSN configuration as raw
+DINOv2 features, `k=150`, all ID classes, Huber `delta=1.345`, and no empirical
+calibration. This matches the `rsn_reported` implementation. The old
+L2-normalized, `k=10`, top-3 profile remains only as a sensitivity condition.
 
-The PDF also says the classification head uses ID validation for early stopping
-and model selection. The code uses a deterministic closed-form ridge linear
-probe and does not early-stop. The paper must describe the ridge probe unless a
-new early-stopped head experiment is run.
-
-The PDF appendix table containing the 27-method ranking must be replaced after
-the verified run. Unsupported rows cannot remain under their original method
-names.
+The paper also documents the deterministic closed-form ridge linear probe used
+by the verified head-based baselines. Its full ranking includes only methods
+that can be implemented faithfully from the cached DINOv2 features and the
+shared ridge head; unsupported ODIN and CLIP-dependent rows are excluded.
 
 ## Primary references used for verification
 
@@ -90,17 +88,21 @@ names.
 
 ## Rerun
 
-The verified Hades runner uses the cleaned 105,554-image manifest, fair protocol,
-both DINOv2 backbones, seeds `0,1,2`, all 28 ID pairs, and four GPU workers:
+The verified Hades sweep uses the cleaned 105,554-image manifest, fair protocol,
+both DINOv2 backbones, seeds `0,1,2`, and every ID-set combination for
+`m=2,3,4,5,6,7`:
 
 ```bash
-bash scripts/run_verified_baseline_audit_hades.sh
+bash scripts/run_verified_baseline_sweep_hades.sh
 ```
 
-Outputs:
+The completed coverage is 1,476 folds and 32,472 verified jobs. The coverage
+audit reports no missing, duplicate, extra, or non-finite jobs. Outputs:
 
 ```text
-results/hades_results/rsn_baseline_audit_20260710/fold_level_verified.csv
-results/hades_results/rsn_baseline_audit_20260710/summary_verified.csv
-results/hades_results/rsn_baseline_audit_20260710/equivalence_audit.csv
+docs/results/rsn_baseline_full_20260711/fold_level_verified.csv
+docs/results/rsn_baseline_full_20260711/summary_verified.csv
+docs/results/rsn_baseline_full_20260711/equivalence_audit.csv
+docs/results/rsn_baseline_full_20260711/coverage_report.json
+docs/results/rsn_baseline_full_20260711/aggregated/metric_ranking_by_id_size.csv
 ```

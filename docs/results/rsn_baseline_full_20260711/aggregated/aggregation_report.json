@@ -1,0 +1,42 @@
+{
+  "complete": true,
+  "duplicate_rows": 0,
+  "extra_methods": [],
+  "fold_rows": 33948,
+  "id_sizes": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "method_count": 23,
+  "methods": [
+    "ashb",
+    "ashp",
+    "ashs",
+    "dice",
+    "energy",
+    "entropy",
+    "gen",
+    "gradnorm",
+    "kl_matching",
+    "knn",
+    "mahalanobis",
+    "mahalanobispp",
+    "maxlogit",
+    "msp",
+    "nci",
+    "openmax",
+    "psm",
+    "react",
+    "rmd",
+    "rsn_paper",
+    "rsn_reported",
+    "scale",
+    "vim"
+  ],
+  "missing_method_id_size_pairs": [],
+  "nonfinite_rows": 0
+}

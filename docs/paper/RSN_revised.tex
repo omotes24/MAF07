@@ -31,7 +31,7 @@
 \maketitle
 
 \begin{abstract}
-同一分類群内の超近接 OOD 検知では，既知種と未知種の特徴が重なりやすい．本稿では，クラス別の次元標準偏差による正規化と Huber 集約を組み合わせた \RSN を提案する．ネコ科8種・105,554枚，ID クラス数 $m=2$--7の全1,476 foldで \knn と PSM を一貫して上回り，\knn に対する平均改善は AUROC $+0.00556$，FPR95 $-0.04156$ であった．
+同一分類群内の超近接 OOD 検知では，既知種と未知種の特徴が重なりやすい．本稿では，クラス別の次元標準偏差による正規化と Huber 集約を組み合わせた \RSN を提案する．ネコ科8種・105,554枚，$m=2$--7の全1,476 foldで22手法を比較し，\RSN は $m=2$--4の全3指標で首位，6サイズ平均順位でも AUROC 2.50，FPR95 1.33，AUPR-OUT 2.17で首位となった．一方，$m=5$--7では OpenMax と RMD が一部指標で上回り，ID クラス数による順位転換も確認した．
 \end{abstract}
 
 \section{はじめに}
@@ -46,7 +46,7 @@
 そこで本稿では \RSN を提案する．主な貢献を以下に示す．
 \begin{itemize}
   \item クラス条件付き次元別標準化と Huber 集約を組み合わせた，学習不要・較正不要の近傍 OOD score を定義する．
-  \item 105,554枚のクリーニング後データで，全 ID 組合せ $\times$ 3 seed $\times$ 2 DINOv2 backbone，計1,476 foldを評価し，$m=2$ から7まで一貫した \knn/PSM 超えを示す．
+  \item 105,554枚のクリーニング後データで，全 ID 組合せ $\times$ 3 seed $\times$ 2 DINOv2 backbone，計1,476 foldについて22手法を比較し，ID クラス数に伴う順位転換まで示す．
   \item 比較実装を再監査し，誤 dispatch，別名重複，cached DINOv2 特徴だけでは原定義を再現できない手法を除外した検証済み表を提示する．
 \end{itemize}
 
@@ -185,7 +185,7 @@ $m$ & ID 組合せ数 & seed & backbone & fold数\\
 
 \subsection{比較手法と実装監査}
 
-主比較は \knn（正規化特徴，$k=50$）と PSM（$r=48,k=200$）である．$m=2$ では，MSP，Entropy，Energy，MaxLogit，GEN，GradNorm，KL-Matching，Mahalanobis，Mahalanobis++，RMD，ViM，ReAct，ASH-P/B/S，DICE，SCALE，NCI，OpenMax も同一 fold で再実行した．分類器依存手法はすべて，ID train の生 DINOv2 特徴に閉形式 ridge 線形 probe（$\lambda=10^{-3}$，bias は非正則化）を学習して使用した．early stopping は行わない．
+主比較は \knn（正規化特徴，$k=50$）と PSM（$r=48,k=200$）である．さらに MSP，Entropy，Energy，MaxLogit，GEN，GradNorm，KL-Matching，Mahalanobis，Mahalanobis++，RMD，ViM，ReAct，ASH-P/B/S，DICE，SCALE，NCI，OpenMax を $m=2$--7の全 foldで再実行した．検証 runner は主 \RSN と感度設定を含む22 profileで32,472 jobsを完走し，主ランキングでは感度設定を除いて対応する PSM を統合した22手法を比較する．分類器依存手法はすべて，ID train の生 DINOv2 特徴に閉形式 ridge 線形 probe（$\lambda=10^{-3}$，bias は非正則化）を学習して使用した．early stopping は行わない．
 
 比較の信頼性を確保するため，原論文の score 定義，dispatch，特徴正規化，共分散，分類 head を再点検した．ODIN は入力勾配と摂動を cached 特徴から再現できず，CLIP zero-shot/MCM/Tip-Adapter は CLIP image-text encoder を用いない限り原手法ではないため，DINOv2 表から除外した．`mah\_mindist' は nearest-class Mahalanobis の別名であり独立行としない．全 fold で method 別 raw score の SHA-256 fingerprint を保存し，欠測・重複・非有限値を検査した．
 
@@ -203,7 +203,7 @@ OOD を positive とし，AUROC$\good$，FPR95$\low$，AUPR-OUT$\good$ を報告
 \centering
 \scriptsize
 \setlength{\tabcolsep}{3.2pt}
-\caption{ID クラス数 $m=2$--7 の主比較（2 backbone pooled）．A=AUROC，F=FPR95，P=AUPR-OUT．太字は各 $m$ の最良値．}
+\caption{ID クラス数 $m=2$--7 の主比較（2 backbone pooled）．A=AUROC，F=FPR95，P=AUPR-OUT．太字は3手法内の各 $m$ の最良値．}
 \label{tab:idsize}
 \begin{tabular}{crrrrrrrrrrr}
 \toprule
@@ -223,36 +223,38 @@ $m$ & $n$ & \multicolumn{3}{c}{\RSN} & \multicolumn{3}{c}{\knn} & \multicolumn{3
 \begin{figure*}[t]
   \centering
   \includegraphics[width=0.98\textwidth]{fig02_idsize_trend.png}
-  \caption{ID クラス数 $m=2$--7 に対する pooled AUROC，FPR95，AUPR-OUT．\RSN は全18条件（6 sizes $\times$ 3 metrics）で比較手法を上回る．}
+  \caption{ID クラス数 $m=2$--7 に対する pooled AUROC，FPR95，AUPR-OUT．\RSN は全18条件（6 sizes $\times$ 3 metrics）で \knn/PSM を上回る．}
   \label{fig:idsize}
 \end{figure*}
 
 $m=2$ の ViT-B/14 では \RSN/\knn/PSM の AUROC は0.9107/0.9055/0.8897，ViT-L/14では0.9230/0.9197/0.9131であり，モデル規模によらず順位が一致した．全 $m$ の backbone 別でも同じ順位である．
 
-\subsection{追加ベースラインとの横断比較（$m=2$）}
+\subsection{全22手法の横断比較（$m=2$--7）}
 
-多数の既存手法を同一 fold で再実行した横断比較は $m=2$ で行った．表~\ref{tab:verifiedtop}に上位結果を示す．\RSN は3指標すべてで最良であり，\knn に対して AUROC $+0.00426$，FPR95 $-0.03192$，AUPR-OUT $+0.00302$ である．特徴距離系では ViM，Mahalanobis，Mahalanobis++ が続く．
+表~\ref{tab:fullsweep}に各 $m$ の指標別首位と \RSN の順位を示す．\RSN は $m=2,3,4$ の全3指標で首位である．$m=5$ 以降は AUROC で OpenMax，AUPR-OUT で RMD が首位となり，$m=6,7$ の FPR95も RMD が最小となる．一方，6サイズを等重みで平均した \RSN の順位は AUROC 2.50，FPR95 1.33，AUPR-OUT 2.17であり，3指標すべてで22手法中最良である．
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
-\footnotesize
-\caption{追加ベースラインとの上位比較（$m=2$, pooled, $n=168$）．}
-\label{tab:verifiedtop}
-\begin{tabular}{clrrr}
+\scriptsize
+\setlength{\tabcolsep}{3.1pt}
+\caption{全手法比較の指標別首位と \RSN の順位（2 backbone pooled）．括弧内は \RSN の順位．}
+\label{tab:fullsweep}
+\begin{tabular}{crlrrlrrlrr}
 \toprule
-順位 & 手法 & AUROC & FPR95 & AUPR\\
+$m$ & $n$ & \multicolumn{3}{c}{AUROC} & \multicolumn{3}{c}{FPR95} & \multicolumn{3}{c}{AUPR-OUT}\\
+ & & 首位 & 値 & RSN順位 & 首位 & 値 & RSN順位 & 首位 & 値 & RSN順位\\
 \midrule
-1 & \textbf{\RSN} & \textbf{.9169} & \textbf{.4307} & \textbf{.9590}\\
-2 & \knn & .9126 & .4626 & .9560\\
-3 & ViM & .9041 & .5436 & .9482\\
-4 & Mahalanobis & .9010 & .5474 & .9470\\
-5 & Mahalanobis++ & .8987 & .5618 & .9453\\
-6 & DICE & .8792 & .7230 & .9292\\
+2 & 168 & \RSN & .9169 & (1) & \RSN & .4307 & (1) & \RSN & .9590 & (1)\\
+3 & 336 & \RSN & .8965 & (1) & \RSN & .5005 & (1) & \RSN & .9125 & (1)\\
+4 & 420 & \RSN & .8788 & (1) & \RSN & .5528 & (1) & \RSN & .8431 & (1)\\
+5 & 336 & OpenMax & .8658 & (2) & \RSN & .5952 & (1) & RMD & .7562 & (3)\\
+6 & 168 & OpenMax & .8534 & (4) & RMD & .6245 & (2) & RMD & .6339 & (3)\\
+7 &  48 & OpenMax & .8343 & (6) & RMD & .6439 & (2) & RMD & .4422 & (4)\\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
-MSP，Entropy，GEN は平均3指標が同じ値（AUROC 0.8440）になったが，raw score fingerprint は全168 foldで異なる．ID が2クラスの場合，これらは同じ絶対 logit margin の単調関数になり，二値 OOD ranking が一致しうるためである．Mahalanobis と Mahalanobis++ は raw score・評価指標ともに異なる．
+OpenMax の AUROC は $m=5,6,7$ で平均上 \RSN を上回るが，paired 差（\RSN$-$OpenMax）の95\% CIは順に $[-.0088,.0020]$，$[-.0163,.0002]$，$[-.0331,.0095]$ で0を跨ぐ．対して RMD の AUPR-OUT は $m=5,6,7$ で有意に高く，差（\RSN$-$RMD）は $-.0144$，$-.0386$，$-.0542$，各95\% CI上端も負である．したがって，\RSN の強みは少数IDクラスでの総合首位と，全サイズでの安定した低FPR95であり，高 $m$ の AUPR-OUTでは RMD に明確な優位がある．なお，$m=2$ で MSP，Entropy，GEN の平均指標は一致するが，raw score fingerprint は全 foldで異なる．全 $m$ の231手法対について raw scoreが完全一致する組はなかった．
 
 \subsection{主設定の選択と ablation}
 
@@ -332,6 +334,32 @@ tiger   & 縞       & .9783 & .0703 & .9535\\
 \end{tabular}
 \end{table}
 
+\begin{table*}[!t]
+\centering
+\tiny
+\setlength{\tabcolsep}{1.35pt}
+\caption{全22手法のIDクラス数別 AUROCと6サイズ平均 AUROC順位 $\bar r_A$．PSMを含み，非主設定のRSN感度profileは除く．}
+\label{tab:fullranking}
+\begin{tabular}{lrrrrrrr@{\hspace{3mm}}lrrrrrrr}
+\toprule
+手法 & $m{=}2$ & $m{=}3$ & $m{=}4$ & $m{=}5$ & $m{=}6$ & $m{=}7$ & $\bar r_A$ &
+手法 & $m{=}2$ & $m{=}3$ & $m{=}4$ & $m{=}5$ & $m{=}6$ & $m{=}7$ & $\bar r_A$\\
+\midrule
+\RSN & .9169 & .8965 & .8788 & .8624 & .8454 & .8224 & 2.50 & Energy & .8439 & .8660 & .8624 & .8480 & .8286 & .8049 & 10.83\\
+OpenMax & .8440 & .8738 & .8741 & .8658 & .8534 & .8343 & 3.33 & PSM & .9014 & .8718 & .8472 & .8255 & .8044 & .7774 & 11.33\\
+\knn & .9126 & .8910 & .8729 & .8565 & .8397 & .8171 & 4.17 & SCALE & .8343 & .8579 & .8533 & .8466 & .8246 & .8048 & 12.00\\
+MSP & .8440 & .8717 & .8709 & .8607 & .8475 & .8304 & 4.67 & KL-Matching & .7996 & .8335 & .8380 & .8362 & .8328 & .8227 & 12.50\\
+MaxLogit & .8440 & .8705 & .8695 & .8591 & .8456 & .8284 & 6.17 & Mahalanobis++ & .8987 & .8693 & .8449 & .8232 & .8016 & .7736 & 13.50\\
+Entropy & .8440 & .8686 & .8660 & .8530 & .8353 & .8130 & 7.83 & NCI & .7989 & .8293 & .8328 & .8250 & .8122 & .7934 & 15.83\\
+GradNorm & .8430 & .8706 & .8676 & .8525 & .8306 & .8015 & 9.33 & DICE & .8792 & .8430 & .8042 & .7644 & .7219 & .6764 & 16.00\\
+GEN & .8440 & .8679 & .8641 & .8498 & .8304 & .8068 & 9.33 & ReAct & .6006 & .6443 & .6746 & .6815 & .6760 & .7464 & 18.83\\
+RMD & .8314 & .8477 & .8479 & .8458 & .8405 & .8284 & 10.50 & ASH-S & .4879 & .5022 & .5252 & .5436 & .5347 & .5498 & 20.83\\
+ViM & .9041 & .8758 & .8502 & .8262 & .8023 & .7725 & 10.67 & ASH-P & .4934 & .5034 & .5121 & .5394 & .5384 & .5254 & 21.00\\
+Mahalanobis & .9010 & .8721 & .8479 & .8263 & .8049 & .7770 & 10.67 & ASH-B & .4957 & .5059 & .5115 & .5164 & .5010 & .5303 & 21.17\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
 \section{分析と考察}
 
 \subsection{対角標準化と較正冗長性}
@@ -355,40 +383,16 @@ DINOv2 特徴ノルムは画像品質，背景，対象の可視性などを含�
 
 \section{限界}
 
-本研究には次の限界がある．第一に，単一のネコ科8種に限定しており，他科・他ドメインへの外的妥当性は未確認である．第二に，ウェブ収集画像を自動・目視規則でクリーニングしたが，細かな誤ラベルや低品質画像が残る可能性がある．第三に，完全な全手法ランキングは計算費用のため $m=2$ のみであり，$m=3$--7では \knn と PSM を主比較とした．第四に，ODIN と CLIP 系を無理に cached DINOv2 特徴へ移植せず除外したため，別 encoder を含む横断比較ではない．第五に，fold 間は同じ画像集合を異なる ID/OOD 組合せで再利用するため完全独立ではなく，paired CI は設定間依存を過小評価しうる．
+本研究には次の限界がある．第一に，単一のネコ科8種に限定しており，他科・他ドメインへの外的妥当性は未確認である．第二に，ウェブ収集画像を自動・目視規則でクリーニングしたが，細かな誤ラベルや低品質画像が残る可能性がある．第三に，$m=7$ は48 foldと少なく，高 $m$ の手法差に対する区間は広い．第四に，ODIN と CLIP 系を無理に cached DINOv2 特徴へ移植せず除外したため，別 encoder を含む横断比較ではない．第五に，fold 間は同じ画像集合を異なる ID/OOD 組合せで再利用するため完全独立ではなく，paired CI は設定間依存を過小評価しうる．
 
 \section{結論}
 
-超近接 OOD に対し，クラス条件付き次元別標準化と Huber 集約を用いる \RSN を提示した．主設定は raw DINOv2 特徴，$k=150$，全 ID クラス，$\delta=1.345$，較正なしである．クリーニング後105,554枚，$m=2$--7の全1,476 foldで，\RSN は \knn と PSM を一貫して上回った．さらに，$m=2$ で追加実行した多数のベースラインとの横断比較でも最良だった．
-
-\begin{table*}[!t]
-\centering
-\scriptsize
-\caption{$m=2$ で追加実行したベースラインを含む全手法ランキング．}
-\label{tab:fullranking}
-\begin{tabular}{clrrr@{\hspace{9mm}}clrrr}
-\toprule
-順位 & 手法 & AUROC & FPR95 & AUPR & 順位 & 手法 & AUROC & FPR95 & AUPR\\
-\midrule
-1 & \RSN & .9169 & .4307 & .9590 & 12 & Energy & .8439 & .5293 & .9356\\
-2 & \knn & .9126 & .4626 & .9560 & 13 & GradNorm & .8430 & .5326 & .9350\\
-3 & ViM & .9041 & .5436 & .9482 & 14 & SCALE & .8343 & .5425 & .9320\\
-4 & Mahalanobis & .9010 & .5474 & .9470 & 15 & RMD & .8314 & .5694 & .9287\\
-5 & Mahalanobis++ & .8987 & .5618 & .9453 & 16 & KL-Matching & .7996 & .5498 & .9201\\
-6 & DICE & .8792 & .7230 & .9292 & 17 & NCI & .7989 & .6648 & .9043\\
-7 & Entropy & .8440 & .5292 & .9357 & 18 & ReAct & .6006 & .8949 & .7888\\
-8 & GEN & .8440 & .5292 & .9357 & 19 & ASH-B & .4957 & .9310 & .7524\\
-9 & MSP & .8440 & .5292 & .9357 & 20 & ASH-P & .4934 & .9534 & .7381\\
-10 & OpenMax & .8440 & .5293 & .9356 & 21 & ASH-S & .4879 & .9483 & .7395\\
-11 & MaxLogit & .8440 & .5293 & .9356 & & & & &\\
-\bottomrule
-\end{tabular}
-\end{table*}
+超近接 OOD に対し，クラス条件付き次元別標準化と Huber 集約を用いる \RSN を提示した．クリーニング後105,554枚，$m=2$--7の全1,476 fold・22手法比較で，\RSN は \knn と PSM を一貫して上回り，3指標すべての平均順位で首位となった．ただし全条件で首位ではなく，$m=5$--7の AUROCでは OpenMax，AUPR-OUTでは RMD が強い．この結果は，\RSN を低FPR95かつIDクラス数に比較的頑健な手法として位置づけると同時に，評価範囲全体を示す重要性を示している．
 
 \appendix
 \section{再現用設定}
 
-主設定は \texttt{normalize=false, k=150, delta=1.345, min\_std=1e-3, candidate=all, calibrated=false} である．評価単位は \texttt{backbone, seed, id\_size, id\_set} の組であり，fold-level CSV は同じ単位で手法を paired に結合できる．検証済み実装は \texttt{src/maf07/methods/verified\_baselines.py}，監査 runner は \texttt{scripts/run\_verified\_baseline\_audit.py} に保存した．
+主設定は \texttt{normalize=false, k=150, delta=1.345, min\_std=1e-3, candidate=all, calibrated=false} である．評価単位は \texttt{backbone, seed, id\_size, id\_set} の組であり，fold-level CSV は同じ単位で手法を paired に結合できる．検証済み実装は \texttt{src/maf07/methods/verified\_baselines.py}，全サイズ runner，完全性監査，集計はそれぞれ \texttt{scripts/run\_verified\_baseline\_sweep\_hades.sh}，\texttt{audit\_verified\_baseline\_sweep.py}，\texttt{aggregate\_verified\_baseline\_sweep.py} に保存した．完全なCSVは \texttt{docs/results/rsn\_baseline\_full\_20260711/} に置く．
 
 \begin{thebibliography}{99}
 

@@ -1,0 +1,19 @@
+{
+  "additional_sweep_started_utc": "2026-07-11T07:35:40Z",
+  "additional_sweep_finished_utc": "2026-07-11T10:08:45Z",
+  "additional_sweep_elapsed_seconds": 9185,
+  "aggregation_commit": "026616a",
+  "backbones": [
+    "dinov2_vitb14",
+    "dinov2_vitl14"
+  ],
+  "complete": true,
+  "experiment_commit": "3db94be",
+  "gpu_count": 4,
+  "gpu_model": "NVIDIA GeForce RTX 2080 Ti",
+  "id_sizes": [2, 3, 4, 5, 6, 7],
+  "peak_workers": 16,
+  "seeds": [0, 1, 2],
+  "verified_jobs_completed": 32472,
+  "verified_jobs_expected": 32472
+}

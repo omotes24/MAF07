@@ -18,11 +18,13 @@ class RSNDetector(DiagCARDDetector):
 
 
 def rsn_profile() -> str:
-    profile = os.environ.get("MAF07_RSN_PROFILE", "paper").strip().lower()
+    profile = os.environ.get("MAF07_RSN_PROFILE", "primary").strip().lower()
     aliases = {
+        "primary": "reported_20260708",
         "legacy": "reported_20260708",
         "reported": "reported_20260708",
         "reported_20260708": "reported_20260708",
+        "sensitivity": "paper",
         "paper": "paper",
     }
     if profile not in aliases:
@@ -37,12 +39,12 @@ def rsn_uses_topq() -> bool:
 
 def rsn_from_env() -> RSNDetector:
     profile = rsn_profile()
-    paper = profile == "paper"
+    legacy_draft = profile == "paper"
     return RSNDetector(
         k=int(
             os.environ.get(
                 "MAF07_RSN_K",
-                os.environ.get("MAF07_DIAGCARD_K", "10" if paper else "150"),
+                os.environ.get("MAF07_DIAGCARD_K", "10" if legacy_draft else "150"),
             )
         ),
         delta=float(
@@ -59,7 +61,7 @@ def rsn_from_env() -> RSNDetector:
         ),
         normalize=os.environ.get(
             "MAF07_RSN_NORMALIZE",
-            os.environ.get("MAF07_DIAGCARD_NORMALIZE", "1" if paper else "0"),
+            os.environ.get("MAF07_DIAGCARD_NORMALIZE", "1" if legacy_draft else "0"),
         )
         == "1",
         min_std=float(

@@ -1,0 +1,94 @@
+{
+  "backbones": [
+    "dinov2_vitb14",
+    "dinov2_vitl14"
+  ],
+  "complete": true,
+  "completed_jobs": 32472,
+  "duplicate_rows": 0,
+  "expected_jobs": 32472,
+  "extra_jobs": 0,
+  "id_sizes": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "methods": [
+    "rsn_reported",
+    "rsn_paper",
+    "knn",
+    "mahalanobis",
+    "mahalanobispp",
+    "rmd",
+    "msp",
+    "entropy",
+    "energy",
+    "maxlogit",
+    "gen",
+    "gradnorm",
+    "kl_matching",
+    "vim",
+    "react",
+    "ashp",
+    "ashb",
+    "ashs",
+    "dice",
+    "scale",
+    "nci",
+    "openmax"
+  ],
+  "missing_jobs": 0,
+  "nonfinite_rows": 0,
+  "per_id_size": [
+    {
+      "completed_jobs": 3696,
+      "expected_jobs": 3696,
+      "folds": 168,
+      "id_size": 2,
+      "missing_jobs": 0
+    },
+    {
+      "completed_jobs": 7392,
+      "expected_jobs": 7392,
+      "folds": 336,
+      "id_size": 3,
+      "missing_jobs": 0
+    },
+    {
+      "completed_jobs": 9240,
+      "expected_jobs": 9240,
+      "folds": 420,
+      "id_size": 4,
+      "missing_jobs": 0
+    },
+    {
+      "completed_jobs": 7392,
+      "expected_jobs": 7392,
+      "folds": 336,
+      "id_size": 5,
+      "missing_jobs": 0
+    },
+    {
+      "completed_jobs": 3696,
+      "expected_jobs": 3696,
+      "folds": 168,
+      "id_size": 6,
+      "missing_jobs": 0
+    },
+    {
+      "completed_jobs": 1056,
+      "expected_jobs": 1056,
+      "folds": 48,
+      "id_size": 7,
+      "missing_jobs": 0
+    }
+  ],
+  "seeds": [
+    0,
+    1,
+    2
+  ]
+}

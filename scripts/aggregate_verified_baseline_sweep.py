@@ -8,6 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from scipy import stats
 
 
 KEY_COLUMNS = ["backbone", "seed", "id_size", "id_set_id", "id_set", "method"]
@@ -90,6 +91,86 @@ def _rankings(summary: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     return ranking, mean_ranking
 
 
+def _metric_rankings(summary: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    pooled = summary[
+        (summary["backbone"] == "ALL")
+        & ~summary["method"].isin(MAIN_RANKING_EXCLUDES)
+    ].copy()
+    rows = []
+    for id_size in sorted(pooled["id_size"].unique()):
+        block = pooled[pooled["id_size"] == id_size]
+        for metric in METRICS:
+            ranked = block.sort_values(
+                [metric, "method"],
+                ascending=[metric == "FPR95", True],
+            ).reset_index(drop=True)
+            for rank, (_, row) in enumerate(ranked.iterrows(), start=1):
+                rows.append(
+                    {
+                        "id_size": int(id_size),
+                        "metric": metric,
+                        "rank": rank,
+                        "method": row["method"],
+                        "n": int(row["n"]),
+                        "value": float(row[metric]),
+                    }
+                )
+    metric_ranking = pd.DataFrame(rows)
+    mean_metric_rank = (
+        metric_ranking.groupby(["metric", "method"], sort=False)
+        .agg(
+            id_sizes=("id_size", "nunique"),
+            mean_rank=("rank", "mean"),
+            mean_value=("value", "mean"),
+        )
+        .reset_index()
+        .sort_values(["metric", "mean_rank", "method"])
+        .reset_index(drop=True)
+    )
+    mean_metric_rank["mean_rank"] = mean_metric_rank["mean_rank"].round(6)
+    mean_metric_rank["mean_value"] = mean_metric_rank["mean_value"].round(6)
+    return metric_ranking, mean_metric_rank
+
+
+def _paired_rsn_vs_all(frame: pd.DataFrame) -> pd.DataFrame:
+    keys = ["backbone", "seed", "id_size", "id_set_id"]
+    methods = sorted(set(frame["method"]) - {"rsn_reported", "rsn_paper"})
+    rows = []
+    for id_size in sorted(frame["id_size"].unique()):
+        for method in methods:
+            block = frame[
+                frame["id_size"].eq(id_size)
+                & frame["method"].isin(["rsn_reported", method])
+            ]
+            pivot = block.pivot(index=keys, columns="method", values=METRICS)
+            for metric in METRICS:
+                values = pivot[[(metric, "rsn_reported"), (metric, method)]].dropna()
+                values.columns = ["rsn", "baseline"]
+                diff = values["rsn"].to_numpy() - values["baseline"].to_numpy()
+                if metric == "FPR95":
+                    diff = -diff
+                n = len(diff)
+                mean = float(diff.mean())
+                half = float(stats.t.ppf(0.975, n - 1) * stats.sem(diff)) if n > 1 else np.nan
+                rows.append(
+                    {
+                        "id_size": int(id_size),
+                        "method_a": "rsn_reported",
+                        "method_b": method,
+                        "metric": metric,
+                        "n": n,
+                        "mean_diff": mean,
+                        "ci_low": mean - half,
+                        "ci_high": mean + half,
+                        "good_rate": float((diff > 0).mean()),
+                    }
+                )
+    paired = pd.DataFrame(rows)
+    for column in ["mean_diff", "ci_low", "ci_high", "good_rate"]:
+        paired[column] = paired[column].round(6)
+    return paired
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--verified-fold", required=True)
@@ -161,10 +242,15 @@ def main(argv: list[str] | None = None) -> int:
 
     summary = _summarize(combined)
     ranking, mean_ranking = _rankings(summary)
+    metric_ranking, mean_metric_rank = _metric_rankings(summary)
+    paired = _paired_rsn_vs_all(combined)
     combined.to_csv(output_dir / "fold_level_verified_with_psm.csv", index=False)
     summary.to_csv(output_dir / "summary_verified_with_psm.csv", index=False)
     ranking.to_csv(output_dir / "ranking_by_id_size.csv", index=False)
     mean_ranking.to_csv(output_dir / "mean_ranking_m2_m7.csv", index=False)
+    metric_ranking.to_csv(output_dir / "metric_ranking_by_id_size.csv", index=False)
+    mean_metric_rank.to_csv(output_dir / "mean_metric_rank_m2_m7.csv", index=False)
+    paired.to_csv(output_dir / "paired_rsn_vs_all_by_id_size.csv", index=False)
     coverage.to_csv(output_dir / "coverage_by_method_id_size.csv", index=False)
 
     report = {

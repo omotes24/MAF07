@@ -16,10 +16,14 @@ condition.
 
 - Cleaned dataset and full ID-size sweep:
   `docs/results/rsn_cleaned_20260708/`
-- Corrected `m=2` baseline audit:
-  `docs/results/rsn_baseline_audit_20260710/`
+- Corrected all-method baseline sweep for `m=2,3,4,5,6,7`:
+  `docs/results/rsn_baseline_full_20260711/`
 - Baseline implementation audit:
   `docs/BASELINE_AUDIT.md`
+
+The all-method sweep covers both DINOv2 backbones, three seeds, every ID-set
+combination, 1,476 folds, and 32,472 verified jobs. The PSM-merged ranking and
+paired statistics are under the result directory's `aggregated/` subdirectory.
 
 ## Rebuild figures
 

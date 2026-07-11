@@ -89,7 +89,7 @@ def test_unsupported_dinov2_names_fail_closed(monkeypatch) -> None:
         suite.score("mah_mindist", train)
 
 
-def test_rsn_profiles_make_paper_and_reported_settings_explicit(monkeypatch) -> None:
+def test_rsn_profiles_default_to_primary_and_keep_legacy_draft_explicit(monkeypatch) -> None:
     for name in [
         "MAF07_RSN_PROFILE",
         "MAF07_RSN_K",
@@ -99,13 +99,13 @@ def test_rsn_profiles_make_paper_and_reported_settings_explicit(monkeypatch) -> 
         "MAF07_DIAGCARD_NORMALIZE",
     ]:
         monkeypatch.delenv(name, raising=False)
-    paper = rsn_from_env()
-    assert paper.k == 10
-    assert paper.normalize is True
-    assert rsn_uses_topq() is True
-
-    monkeypatch.setenv("MAF07_RSN_PROFILE", "reported_20260708")
-    reported = rsn_from_env()
-    assert reported.k == 150
-    assert reported.normalize is False
+    primary = rsn_from_env()
+    assert primary.k == 150
+    assert primary.normalize is False
     assert rsn_uses_topq() is False
+
+    monkeypatch.setenv("MAF07_RSN_PROFILE", "paper")
+    legacy_draft = rsn_from_env()
+    assert legacy_draft.k == 10
+    assert legacy_draft.normalize is True
+    assert rsn_uses_topq() is True

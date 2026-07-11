@@ -41,15 +41,18 @@ images on Hades, or materialize the same directory layout locally and update
 ## Result audit status
 
 The July 2026 audit found that the archived full-ranking table used several
-incorrect or proxy baseline implementations. It also found that the RSN settings
-in the PDF (`L2`, `k=10`, top-3 candidates) differ from the settings that produced
-the archived numbers (raw features, `k=150`, all classes).
+incorrect or proxy baseline implementations. The corrected paper and primary
+implementation now agree on raw features, `k=150`, all ID classes, Huber
+`delta=1.345`, and no empirical calibration.
 
 The archived CSVs remain under `docs/results/rsn_cleaned_20260708/` for
 provenance, but must not be cited as verified final results. See
 [docs/BASELINE_AUDIT.md](docs/BASELINE_AUDIT.md) for the method-by-method audit.
-The corrected runner evaluates the PDF and archived RSN profiles side by side and
-stores raw-score fingerprints in addition to metrics.
+The corrected runner evaluates the primary and sensitivity RSN profiles side by
+side and stores raw-score fingerprints in addition to metrics. The verified
+fair sweep for `m=2,3,4,5,6,7` completed all 32,472 jobs over 1,476 folds; its
+coverage report and aggregated rankings are in
+`docs/results/rsn_baseline_full_20260711/`.
 
 More details are in [docs/RSN.md](docs/RSN.md) and
 [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md).
@@ -87,10 +90,10 @@ export MAF07_RSN_WORKERS=4
 bash scripts/run_rsn_full.sh
 ```
 
-Run the verified `m=2` baseline audit used to replace the PDF ranking table:
+Run the verified all-method baseline sweep for every ID-set size:
 
 ```bash
-bash scripts/run_verified_baseline_audit_hades.sh
+bash scripts/run_verified_baseline_sweep_hades.sh
 ```
 
 Completion is defined by `results/coverage/coverage_report.json`: `expected_jobs` and
