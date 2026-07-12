@@ -35,6 +35,7 @@ from .methods.baselines_vlm import clip_text_energy, clip_zero_shot_msp, mcm_sco
 from .methods.card import card_from_env
 from .methods.cqs import cqs_from_env
 from .methods.csr import csr_from_env
+from .methods.cwknn import cwknn_mean_from_env
 from .methods.lar import lar_from_env
 from .methods.lantern import lantern_from_env
 from .methods.maf import MAFScorer, distance_variant_score, maf_fusion
@@ -332,6 +333,8 @@ def _score_method(
         return rmd_score(train_x, train_y, eval_x)
     if method == "knn":
         return knn_score(train_x, eval_x)
+    if method in {"cwknn", "cwknn_mean"}:
+        return cwknn_mean_from_env().fit(train_x, train_y).id_scores(eval_x)
     if method == "card":
         _, _, eval_logits = _split_logits(train_x, train_y, val_x, eval_x)
         return _card_score(train_x, train_y, val_x, val_y, eval_x, eval_logits=eval_logits)
@@ -444,6 +447,12 @@ def _score_ood_group_method(
         if "knn" not in cache:
             cache["knn"] = knn_score(train_x, eval_x)
         return cache["knn"]
+    if method in {"cwknn", "cwknn_mean"}:
+        if "cwknn_mean" not in cache:
+            cache["cwknn_mean"] = (
+                cwknn_mean_from_env().fit(train_x, train_y).id_scores(eval_x)
+            )
+        return cache["cwknn_mean"]
     if method == "card":
         if "card" not in cache:
             if "split_logits" not in cache:
