@@ -27,6 +27,15 @@ it obtained:
 |---:|---:|---:|
 | 0.873581 | 0.570593 | 0.832092 |
 
+On the Hades `seed=0`, `dinov2_vitb14`, `cheetah|jaguar` fold, the dedicated
+implementation and the original factorial condition produced exactly equal
+17,608-element score arrays (`max_abs_diff=0.0`) and the same SHA-256 score
+fingerprint:
+
+```text
+80a739feecb3669717918d115d3da7d577e03dbb04dded8a574e1e4835e01ce3
+```
+
 ## Python API
 
 ```python

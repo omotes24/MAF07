@@ -1,0 +1,67 @@
+% CW-kNN Mean method fragment for RSN_revised.tex.
+% Add the following to the preamble only when including the Python listing:
+% \usepackage{listings}
+% \lstset{basicstyle=\ttfamily\scriptsize,breaklines=true,frame=single}
+
+\providecommand{\CWKNN}{CW-\(k\)NN Mean}
+
+\subsection{提案手法：\CWKNN}
+
+要因分解実験から，クラス別標準化よりも，生特徴，クラス別候補集合，
+および近傍距離の平均集約が性能を支配することが分かった．そこで，これらの
+要素だけからなる \CWKNN（Class-Wise \(k\)-Nearest-Neighbor Mean）を定義する．
+本手法は特徴の \(\ell_2\) 正規化，次元別標準化，Huber 化，分類 head，および
+経験分位点較正を用いない．
+
+凍結 backbone から得る生特徴を \(z(x)\in\mathbb{R}^{D}\) とし，ID クラス
+\(c\in\mathcal{C}_{\mathrm{ID}}\) の学習特徴バンクを
+\begin{equation}
+  \mathcal{B}_{c}=\{z_i\mid y_i=c\}
+\end{equation}
+とする．問い合わせ \(z\) に対し，\(\mathcal{B}_{c}\) 内で Euclidean 距離が
+小さい順に選んだ近傍集合を \(N_{k_c}^{c}(z)\) とする．ここで
+\(k_c=\min(k,|\mathcal{B}_{c}|)\) である．クラス条件付き距離を
+\begin{equation}
+  d_c(z)
+  =\frac{1}{k_c}
+   \sum_{z_j\in N_{k_c}^{c}(z)}\lVert z-z_j\rVert_2
+  \label{eq:cwknn-class-distance}
+\end{equation}
+と定義する．全 ID クラスを候補とし，最も近いクラスまでの距離
+\begin{equation}
+  s_{\mathrm{OOD}}^{\mathrm{CW\text{-}kNN}}(z)
+  =\min_{c\in\mathcal{C}_{\mathrm{ID}}}d_c(z)
+  \label{eq:cwknn-ood-score}
+\end{equation}
+を OOD score とする．値が大きいほど OOD らしい．AUROC 等の共通評価器へ
+ID score を渡す場合は
+\begin{equation}
+  s_{\mathrm{ID}}^{\mathrm{CW\text{-}kNN}}(z)
+  =-s_{\mathrm{OOD}}^{\mathrm{CW\text{-}kNN}}(z)
+\end{equation}
+を用いる．主設定は生 DINOv2 特徴，\(k=150\)，全 ID クラス候補である．
+
+\begin{table}[t]
+  \centering
+  \caption{\CWKNN の \(m=2\)--7 等重み平均．Balanced AUPR-OUT は ID/OOD の
+  重みを 50:50 に補正した値である．}
+  \label{tab:cwknn-main}
+  \begin{tabular}{lccc}
+    \toprule
+    手法 & AUROC$\uparrow$ & FPR95$\downarrow$ & Bal. AUPR-OUT$\uparrow$ \\
+    \midrule
+    \CWKNN & \textbf{0.873581} & 0.570593 & \textbf{0.832092} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{実装．}
+付録へ参照実装を掲載する場合は，preamble に \texttt{listings} を追加し，以下を
+使用する．この実装は報告値を生成した
+\texttt{knn\_raw\_classwise\_k150\_mean} 条件と score 配列が完全一致する．
+
+\lstinputlisting[
+  language=Python,
+  caption={\CWKNN の PyTorch 参照実装．},
+  label={lst:cwknn}
+]{listings/cwknn_mean.py}

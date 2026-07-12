@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import importlib.util
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -116,3 +119,23 @@ def test_cwknn_runner_dispatch(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     expected = CWKNNMeanDetector(k=2, device="cpu").fit(train, labels).id_scores(query)
     np.testing.assert_allclose(score, expected, atol=1e-5)
+
+
+def test_paper_reference_listing_matches_production() -> None:
+    listing = (
+        Path(__file__).resolve().parents[1]
+        / "docs"
+        / "paper"
+        / "listings"
+        / "cwknn_mean.py"
+    )
+    spec = importlib.util.spec_from_file_location("cwknn_paper_listing", listing)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    train, labels, query = _data()
+    paper = module.CWKNNMean(k=2, batch_size=2, device="cpu")
+    paper_score = paper.fit(train, labels).id_score(query)
+    production = CWKNNMeanDetector(k=2, device="cpu").fit(train, labels).id_scores(query)
+    np.testing.assert_array_equal(paper_score, production)
