@@ -1,0 +1,12 @@
+{
+  "completed_jobs": 23616,
+  "completed_per_ood_rows": 92160,
+  "duplicate_job_rows": 0,
+  "duplicate_per_ood_rows": 0,
+  "expected_jobs": 23616,
+  "expected_per_ood_rows": 92160,
+  "extra_jobs": 0,
+  "method_count": 16,
+  "missing_jobs": 0,
+  "strict_pass": true
+}

@@ -1,0 +1,27 @@
+{
+  "calibrated_metrics": {
+    "AUPR_OUT": 0.963818108197361,
+    "AUROC": 0.8875544304223101,
+    "FPR95": 0.3666953651886928
+  },
+  "claim_scope": "Empirical rank-equivalence diagnostic only. DKW controls CDF error; it does not by itself imply AUROC degradation.",
+  "discordant_pair_fraction_from_tau": 0.030862485649118532,
+  "id_set": [
+    "cheetah",
+    "jaguar"
+  ],
+  "kendall_tau": 0.9382750287017629,
+  "max_absolute_rank_displacement": 2725.0,
+  "mean_absolute_rank_displacement": 472.5437869150386,
+  "raw_metrics": {
+    "AUPR_OUT": 0.9627508666543947,
+    "AUROC": 0.8800193969165901,
+    "FPR95": 0.37286554742430766
+  },
+  "sample_n": 17608,
+  "spearman_rho": 0.990159495866743,
+  "validation_counts": {
+    "cheetah": 1888,
+    "jaguar": 1742
+  }
+}
