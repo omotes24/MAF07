@@ -231,7 +231,7 @@ def _dimension_analysis(
                 total = huber.sum(dim=1)
                 replace = total < best_total[start:end]
                 if torch.any(replace):
-                    rows = torch.flatnonzero(replace) + start
+                    rows = torch.nonzero(replace, as_tuple=False).flatten() + start
                     best_total[rows] = total[replace]
                     best_squared[rows] = squared[replace]
                     best_huber[rows] = huber[replace]
