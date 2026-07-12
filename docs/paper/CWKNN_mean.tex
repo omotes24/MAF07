@@ -1,7 +1,8 @@
 % CW-kNN Mean method fragment for RSN_revised.tex.
-% Add the following to the preamble only when including the Python listing:
+% Add the following to the preamble when including the algorithm and listing:
 % \usepackage{listings}
-% \lstset{basicstyle=\ttfamily\scriptsize,breaklines=true,frame=single}
+% \usepackage{algorithm,algpseudocode,float}
+% \lstset{basicstyle=\ttfamily\footnotesize,breaklines=true,frame=single}
 
 \providecommand{\CWKNN}{CW-\(k\)NN Mean}
 
@@ -55,6 +56,31 @@ ID score を渡す場合は
   \end{tabular}
 \end{table}
 
+\begin{algorithm}[H]
+  \caption{\CWKNN による OOD score の計算}
+  \label{alg:cwknn}
+  \begin{algorithmic}[1]
+    \Require 生の学習特徴 $\mathcal{T}=\{(z_i,y_i)\}$，問い合わせ集合
+      $\mathcal{Q}$，近傍数 $k$
+    \Ensure 各 $z\in\mathcal{Q}$ の OOD score $s_{\mathrm{OOD}}(z)$
+    \ForAll{$c\in\mathcal{C}_{\mathrm{ID}}$}
+      \State $\mathcal{B}_c\gets\{z_i\mid y_i=c\}$
+    \EndFor
+    \ForAll{$z\in\mathcal{Q}$}
+      \State $s_{\mathrm{OOD}}(z)\gets\infty$
+      \ForAll{$c\in\mathcal{C}_{\mathrm{ID}}$}
+        \State $k_c\gets\min(k,|\mathcal{B}_c|)$
+        \State $N_{k_c}^{c}(z)\gets k_c$ 個の最近傍点 in $\mathcal{B}_c$
+        \State $d_c(z)\gets\frac{1}{k_c}
+          \sum_{z_j\in N_{k_c}^{c}(z)}\lVert z-z_j\rVert_2$
+        \State $s_{\mathrm{OOD}}(z)\gets
+          \min\bigl(s_{\mathrm{OOD}}(z),d_c(z)\bigr)$
+      \EndFor
+    \EndFor
+    \State \Return $\{s_{\mathrm{OOD}}(z)\mid z\in\mathcal{Q}\}$
+  \end{algorithmic}
+\end{algorithm}
+
 \paragraph{実装．}
 付録へ参照実装を掲載する場合は，preamble に \texttt{listings} を追加し，以下を
 使用する．この実装は報告値を生成した
@@ -62,8 +88,9 @@ ID score を渡す場合は
 
 \lstinputlisting[
   language=Python,
+  basicstyle=\ttfamily\footnotesize,
   numbers=left,
-  numberstyle=\tiny\color{gray},
+  numberstyle=\scriptsize\color{gray},
   stepnumber=1,
   numbersep=8pt,
   xleftmargin=2em,
