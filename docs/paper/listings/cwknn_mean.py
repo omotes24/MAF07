@@ -11,12 +11,17 @@ class CWKNNMean:
 
     @torch.no_grad()
     def fit(self, train_features, train_labels):
+        # Keep the frozen backbone features raw: no L2 normalization.
         x = torch.as_tensor(
             train_features, dtype=torch.float32, device=self.device
         )
         y = torch.as_tensor(train_labels, device=self.device)
+
+        # Build one memory bank for each known ID class.
         self.classes = torch.unique(y, sorted=True)
         self.banks = [x[y == c].contiguous() for c in self.classes]
+
+        # Cache squared norms for exact Euclidean-distance computation.
         self.bank_norms = [(bank * bank).sum(1) for bank in self.banks]
         return self
 
@@ -27,24 +32,33 @@ class CWKNNMean:
             features, dtype=torch.float32, device=self.device
         )
         chunks = []
+
+        # Batch queries to bound the temporary GPU-memory footprint.
         for start in range(0, len(query), self.batch_size):
             q = query[start : start + self.batch_size]
             q_norm = (q * q).sum(1, keepdim=True)
             best = torch.full(
                 (len(q),), torch.inf, dtype=q.dtype, device=q.device
             )
+
+            # Compute a mean kNN distance independently for every class.
             for bank, bank_norm in zip(self.banks, self.bank_norms):
                 distance2 = (
                     q_norm + bank_norm[None, :] - 2.0 * q @ bank.T
                 ).clamp_min(0.0)
                 k_c = min(self.k, len(bank))
+
+                # Average the k nearest Euclidean distances in this class.
                 class_distance = torch.sqrt(
                     torch.topk(distance2, k_c, largest=False).values
                 ).mean(1)
+
+                # The nearest class-wise bank defines the final OOD score.
                 best = torch.minimum(best, class_distance)
             chunks.append(best)
         return torch.cat(chunks).cpu().numpy()
 
     def id_score(self, features):
         """Larger values indicate more ID-like samples."""
+        # The experiment evaluator expects an ID-oriented score.
         return -self.ood_score(features)
