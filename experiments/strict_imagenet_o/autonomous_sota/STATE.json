@@ -1,0 +1,121 @@
+{
+  "cycle": 96,
+  "eligible_sota": {
+    "method": "RC-MSPS",
+    "macro_auroc": 0.8876363198137707,
+    "macro_aupr_out": 0.6192729893725474,
+    "macro_fpr95": 0.43441666086326486,
+    "status": "protocol_matched_existing_baseline"
+  },
+  "final_benchmark": {
+    "evaluation_executed": false,
+    "feature_extraction_executed": false,
+    "manifest": {
+      "aggregate_sha256": "6dbd4c0a9b4bc9db40a0e430c82dd3c95e2dd82ae116f0761db57d6243c401e5",
+      "image_count": 54879,
+      "summary_sha256": "00321b523cc707607356ad3d4726bfc9554df282fcffe7f09c9b81da6df5fa82"
+    },
+    "preregistration": "configs/final_benchmark_preregistration.json",
+    "preregistration_sha256": "9c1ec49308b328bbb5b91b56581a78461101423e7b96e82309ba0238a059575a",
+    "suite": [
+      "NINCO",
+      "SSB-hard"
+    ]
+  },
+  "last_successful_checkpoint": "cycle96_pulse_passed_image_proxy_legacy_bootstrap_and_ablation",
+  "next_hypotheses": [
+    "lock_PULSE_equation_state_code_and_manifests",
+    "extract_untouched_NINCO_and_SSB_hard_once",
+    "run_locked_final_evaluation_and_2000_paired_bootstrap",
+    "run_second_reproduction_from_locked_config"
+  ],
+  "pareto_best": [
+    {
+      "imagenet_o_auroc": 0.8210932,
+      "macro_aupr_out": 0.626109045593972,
+      "macro_auroc": 0.9114263360092222,
+      "macro_fpr95": 0.3999702361105249,
+      "method": "PULSE",
+      "status": "legacy_success_proxy_promoted_bootstrap_confirmed_awaiting_final_lock"
+    }
+  ],
+  "running_jobs": [],
+  "status": "ready_for_final_lock",
+  "updated_utc": "2026-07-13T22:30:00Z",
+  "validated_hypotheses": [
+    {
+      "count_materially_distinct": 123,
+      "highest_completed_hypothesis_id": "H145",
+      "registry": "HYPOTHESES.md"
+    },
+    {
+      "id": "F00_msps_vim_fixed_fusion",
+      "macro_auroc": 0.859667557334065,
+      "macro_fpr95": 0.5957395294320404,
+      "result": "failed"
+    },
+    {
+      "id": "B01_exact_nnguide_protocol_reproduction",
+      "macro_auroc": 0.8535489330198424,
+      "macro_fpr95": 0.5461162363356266,
+      "result": "completed_below_sota"
+    },
+    {
+      "id": "H35_clean_mvrc_mean",
+      "imagenet_o_auroc": 0.780376,
+      "macro_auroc": 0.892172,
+      "macro_fpr95": 0.430616,
+      "result": "current_clean_pareto_but_below_success"
+    },
+    {
+      "id": "H83_mahalanobis_pp",
+      "imagenet_o_auroc": 0.639495,
+      "result": "failed_legacy_gate"
+    },
+    {
+      "id": "H84_clafr",
+      "imagenet_o_auroc": 0.346248,
+      "result": "failed_legacy_gate"
+    },
+    {
+      "id": "H129_diagonal_metric_knn_within_z",
+      "imagenet_o_auroc": 0.823774,
+      "macro_auroc": 0.842876,
+      "macro_fpr95": 0.630928,
+      "result": "failed_macro_gate"
+    },
+    {
+      "id": "H130_multiview_knn_mean_feature",
+      "imagenet_o_auroc": 0.83022,
+      "macro_auroc": 0.842621,
+      "macro_fpr95": 0.630854,
+      "result": "failed_macro_gate"
+    },
+    {
+      "id": "H141_pulse",
+      "imagenet_o_auroc": 0.8210932,
+      "macro_auroc": 0.9114263360092222,
+      "macro_fpr95": 0.3999702361105249,
+      "result": "legacy_success_proxy_promoted_bootstrap_confirmed"
+    },
+    {
+      "id": "H142_cauchy_min_consensus",
+      "macro_auroc": 0.864316894,
+      "result": "proxy_passed_legacy_failed"
+    },
+    {
+      "id": "H143_cauchy_raw_envelope",
+      "macro_auroc": 0.864921,
+      "result": "proxy_passed_legacy_failed"
+    },
+    {
+      "id": "H144_cauchy_quantile_envelope",
+      "macro_auroc": 0.886053,
+      "result": "proxy_passed_legacy_failed"
+    },
+    {
+      "id": "H145_image_space_proxy_repair",
+      "result": "completed_patch_shuffle_and_cutmix_spearman_0.9_kendall_0.8"
+    }
+  ]
+}

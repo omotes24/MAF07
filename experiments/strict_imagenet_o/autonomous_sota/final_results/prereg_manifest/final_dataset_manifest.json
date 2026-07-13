@@ -1,0 +1,32 @@
+{
+  "aggregate_file_manifest_sha256": "6dbd4c0a9b4bc9db40a0e430c82dd3c95e2dd82ae116f0761db57d6243c401e5",
+  "data_root": "/home/omote/datasets/autonomous_sota_final",
+  "datasets": [
+    {
+      "bytes": 677522575,
+      "file_manifest_sha256": "2174562f6726c93cc47a963dc9383cf16febc0cf39d74683316010bf1b883b3e",
+      "imglist_path": "/home/omote/datasets/autonomous_sota_final/benchmark_imglist/imagenet/test_ninco.txt",
+      "imglist_sha256": "28450babf7d8d7389b75989a3af15346be0d514f048eac3711694045fdf40dd8",
+      "name": "NINCO",
+      "num_images": 5879,
+      "openood_alias": "ninco"
+    },
+    {
+      "bytes": 1064101076,
+      "file_manifest_sha256": "8a5a3c718c1d63007120adad8ea8acbf4b644a32658ac366707f64baf79e0c1d",
+      "imglist_path": "/home/omote/datasets/autonomous_sota_final/benchmark_imglist/imagenet/test_ssb_hard.txt",
+      "imglist_sha256": "e2dc7ba6c1e2bd2179a06038598344d5d8716be3bbc9409c45b0c3de95431510",
+      "name": "SSB-hard",
+      "num_images": 49000,
+      "openood_alias": "ssb_hard"
+    }
+  ],
+  "feature_extraction_executed": false,
+  "generated_utc": "2026-07-13T10:32:08.941956+00:00",
+  "image_decoding_executed": false,
+  "preregistration_path": "/home/omote/strict_imagenet_o/autonomous_sota/configs/final_benchmark_preregistration.json",
+  "preregistration_sha256": "9c1ec49308b328bbb5b91b56581a78461101423e7b96e82309ba0238a059575a",
+  "score_computation_executed": false,
+  "total_bytes": 1741623651,
+  "total_images": 54879
+}

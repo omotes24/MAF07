@@ -1,0 +1,7 @@
+{
+  "final_benchmark_accessed": false,
+  "same_configuration_all_datasets": true,
+  "state": "/home/omote/strict_imagenet_o/autonomous_sota/locked_models/cycle87_pulse/state.npz",
+  "target_ood_used_for_fit_or_calibration": false,
+  "test_image_sharing": false
+}

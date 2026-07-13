@@ -1,0 +1,121 @@
+{
+  "calibration": "class-conditional empirical CDF shrunk toward global layer CDF",
+  "candidate_selection": "top-K deepest-stage cosine classes",
+  "dataset_manifest_sha256": "e0f23974ba95f1403748d4b6e72f705dde646ff53d4aca37d6b73f2243819697",
+  "evaluation": {
+    "device": "cuda",
+    "id_shards": [
+      "/home/omote/strict_imagenet_o_results/cache/imagenet_val.rank0.npz",
+      "/home/omote/strict_imagenet_o_results/cache/imagenet_val.rank1.npz",
+      "/home/omote/strict_imagenet_o_results/cache/imagenet_val.rank2.npz",
+      "/home/omote/strict_imagenet_o_results/cache/imagenet_val.rank3.npz"
+    ],
+    "initial_batch_size": 256,
+    "ood_shards": {
+      "imagenet_o": [
+        "/home/omote/strict_imagenet_o_results/cache/imagenet_o.rank0.npz",
+        "/home/omote/strict_imagenet_o_results/cache/imagenet_o.rank1.npz",
+        "/home/omote/strict_imagenet_o_results/cache/imagenet_o.rank2.npz",
+        "/home/omote/strict_imagenet_o_results/cache/imagenet_o.rank3.npz"
+      ],
+      "inaturalist": [
+        "/home/omote/strict_imagenet_o_results/msps_cache/inaturalist.rank0.npz",
+        "/home/omote/strict_imagenet_o_results/msps_cache/inaturalist.rank1.npz",
+        "/home/omote/strict_imagenet_o_results/msps_cache/inaturalist.rank2.npz",
+        "/home/omote/strict_imagenet_o_results/msps_cache/inaturalist.rank3.npz"
+      ],
+      "openimage_o": [
+        "/home/omote/strict_imagenet_o_results/msps_cache/openimage_o_vim_full.rank0.npz",
+        "/home/omote/strict_imagenet_o_results/msps_cache/openimage_o_vim_full.rank1.npz",
+        "/home/omote/strict_imagenet_o_results/msps_cache/openimage_o_vim_full.rank2.npz",
+        "/home/omote/strict_imagenet_o_results/msps_cache/openimage_o_vim_full.rank3.npz"
+      ],
+      "texture": [
+        "/home/omote/strict_imagenet_o_results/cache/texture.rank0.npz",
+        "/home/omote/strict_imagenet_o_results/cache/texture.rank1.npz",
+        "/home/omote/strict_imagenet_o_results/cache/texture.rank2.npz",
+        "/home/omote/strict_imagenet_o_results/cache/texture.rank3.npz"
+      ]
+    },
+    "results_dir": "/home/omote/strict_imagenet_o_results/msps_sota/final_locked"
+  },
+  "feature_dimensions": [
+    256,
+    512,
+    1024,
+    2048
+  ],
+  "feature_layers": [
+    "resnet50d.layer1",
+    "resnet50d.layer2",
+    "resnet50d.layer3",
+    "resnet50d.layer4"
+  ],
+  "fit_split": {
+    "calibration_per_class": 50,
+    "num_classes": 1000,
+    "prototype_per_class": 150
+  },
+  "fusion": "harmonic_mean",
+  "git_commit": "unknown (server deployment is not a Git worktree)",
+  "hyperparameters": {
+    "beta": 0.0,
+    "class_shrinkage": 0.1,
+    "eta": 0.5,
+    "fusion": "harmonic_mean",
+    "k": 5,
+    "lambda": 0.0,
+    "mode": "cdf",
+    "prototype": "mean",
+    "residual": "none",
+    "rho": 0.0,
+    "weight_scheme": "heldout_layer_auroc",
+    "weights": [
+      0.015205711126327515,
+      0.028525466099381447,
+      0.09970004111528397,
+      0.8565688133239746
+    ]
+  },
+  "id_only_cv": {
+    "pseudo_AUPR_OUT_mean": 0.6889591084753592,
+    "pseudo_AUROC_mean": 0.86852155,
+    "pseudo_AUROC_worst": 0.8598438650000001,
+    "pseudo_FPR95_mean": 0.48832
+  },
+  "id_only_selection_sha256": "28dbb76ed8ef2d9dc3a9865361d2aec9c6e16af582355e6f3583f608bf30d9f7",
+  "implementation_files_sha256": {
+    "__init__.py": "d06896ad6a454d5e9fba948bcd2987982c22375e89c246895a731d924ec1960f",
+    "audit_leakage.py": "143d455d7021dfa96e23ccff746b85d5e00211764939f6a772498ebcf01d4657",
+    "baseline_eligibility.py": "bbcd5030eb73140b4cc45aea01923feda7b97efbe84c653a3d9773b7ff8cd30d",
+    "calibration.py": "25184c1e33d2a97d8ce1b3269d465b86074887d780b40392a9339d7ffebd106b",
+    "evaluate_baselines.py": "e0ed93002a9a61c958415f1b0044e9175cc245b9c6c1bfefff0be756ad504d72",
+    "evaluate_locked.py": "e98e357486ffefc3ef3579cc787c925d948db6c1dfa3fffa9169457015b9cc5c",
+    "feature_cache.py": "ad6ebfdeb04411989796b9ed7806f048c2b57ce13c0d71cf76bfea55cb77ebc5",
+    "lock_config.py": "a3b38607494c9bf6a6d7ecc8eafc1966a60edcc28b968e816494371645a3557b",
+    "metrics.py": "72898c2136bfe09a4df58baee49a937b9a69dcf96de281b220ca4f593e87836b",
+    "prototype_stats.py": "5514cd770e73788ddf7ea68239a5a949d4d2f8d915d989a0e1fb77ea358165fe",
+    "pseudo_ood_cv.py": "56bd74c7720e9569415698a48f56e46e11987f8f8d61a28be8d8211eed77918a",
+    "run_search.py": "2809317a19458fd2519ebc5db10bbe8c3db4a6bbcd31b9824f4c025d24cdfb79",
+    "scores.py": "0ccd27124906de359859e966cf61875e0ec16425e73fa8a1185283dc34bb43c4"
+  },
+  "locked_before_ood_evaluation": true,
+  "locked_utc": "2026-07-13T09:04:34.825126+00:00",
+  "method_full_name": "Reliability-Calibrated Multi-Stage Prototype Support",
+  "method_name": "RC-MSPS",
+  "model_weights_sha256": "9c170e1af55e7ca051be5f147e86b7ddcf2e9ec2b4836ffe85e0bb940ec62827",
+  "payload_sha256": "79d5890454007299172433a548b99440901d8c7085e5d4372dee18f26abb882b",
+  "prototype_estimator": "mean",
+  "score_equation": "max_c[log(fuse_l(q_lc,w_l))-lambda*Var_l(log q_lc)+eta*mean_l(1[argmax_j a_lj=c])]",
+  "state_path": "/home/omote/strict_imagenet_o_results/msps_sota/locked_state.npz",
+  "state_sha256": "5f9c236959ea439d1fb2df410f99183ee8a10d9bfcfdda27b61c266466754cfa",
+  "target_ood_used_for_fitting_or_selection": false,
+  "test_batch_statistics": false,
+  "train_shards": [
+    "/home/omote/strict_imagenet_o_results/msps_cache/imagenet_train_balanced200.rank0.npz",
+    "/home/omote/strict_imagenet_o_results/msps_cache/imagenet_train_balanced200.rank1.npz",
+    "/home/omote/strict_imagenet_o_results/msps_cache/imagenet_train_balanced200.rank2.npz",
+    "/home/omote/strict_imagenet_o_results/msps_cache/imagenet_train_balanced200.rank3.npz"
+  ],
+  "transductive": false
+}

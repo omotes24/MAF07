@@ -1,0 +1,6 @@
+{
+  "final_benchmark_accessed": false,
+  "state": "/home/omote/strict_imagenet_o/autonomous_sota/locked_models/cycle87_pulse/state.npz",
+  "state_refit_per_ablation": false,
+  "target_ood_used_for_fit_or_selection": false
+}
