@@ -127,6 +127,7 @@ Variants that only change a coefficient do not receive a new hypothesis ID. Ever
 | 121 | H143 | Cauchy raw-scale OR envelope | max of stage-tail and three-cue geometric branch | four components | passed old synthetic proxy, failed legacy; best 0.864921 |
 | 122 | H144 | Cauchy quantile envelope | ID-ECDF aligned OR envelope | four components | passed old synthetic proxy, failed legacy; best 0.886053 |
 | 123 | H145 | Image-space proxy repair | patch permutation and center CutMix ranked against frozen methods | infrastructure | Spearman 0.9, Kendall 0.8; both promote PULSE over MSPS |
+| 124 | H146 | Locked untouched final evaluation | one frozen PULSE configuration on NINCO and SSB-hard | final-only | completed; broad and statistically significant gains over RC-MSPS |
 
 ## Cycle 1 Ranking Rationale
 
@@ -155,3 +156,7 @@ Blur/grayscale stability, validation hubness, and train-local density all failed
 The old feature-space proxy suite was invalid for methods using own-image perturbation and localized views: it ranked CauchyStageTail first although Cauchy reached only `0.855591` legacy macro AUROC, while it ranked PULSE last although PULSE reached `0.911426`. Three separately preregistered Cauchy minimum, raw-envelope, and quantile-envelope families passed that proxy and all failed legacy, confirming an infrastructure defect rather than a coefficient issue.
 
 The proxy was repaired with deterministic image-space pseudo-OOD. A 4x4 patch permutation and cross-class center CutMix reproduced the frozen five-method legacy ordering with Spearman `0.9` and Kendall `0.8`; Fourier phase mixing reversed the ordering and was rejected. PULSE exceeds MSPS on both selected proxies (`0.709716` vs `0.661103`; `0.690661` vs `0.599584`). On the four legacy datasets PULSE reaches macro AUROC/FPR95/AUPR-OUT `0.911426/0.399970/0.626109` and ImageNet-O AUROC `0.821093`. The 1000-replicate paired macro AUROC difference over RC-MSPS is `+0.023783`, 95% CI `[0.021864, 0.025760]`; the FPR95 difference is `-0.033918`, CI `[-0.044841, -0.023158]`. Every leave-one-component-out ablation lowers AUROC and worsens FPR95. PULSE is ready for immutable final lock; NINCO and SSB-hard remain untouched.
+
+## Cycle 97 Final Outcome
+
+The code was fixed at commit `f18785ecfcc09e64b91ce2b23afb1aeb9ec79500` and the final configuration was fixed at SHA-256 `f43edfd5e1770c61ca2810dac167c0025fe24155e27fc630b8a096de42c6d977` before any final image was decoded. On untouched NINCO and SSB-hard, PULSE improved AUROC over RC-MSPS on both datasets. The final macro differences were AUROC `+0.036097`, FPR95 `-0.042734`, and AUPR-OUT `+0.042061`. Their 2,000-draw paired bootstrap intervals were respectively `[0.033709, 0.038405]`, `[-0.051957, -0.033954]`, and `[0.036883, 0.047003]`. H146 is accepted and the research stopping condition is satisfied.

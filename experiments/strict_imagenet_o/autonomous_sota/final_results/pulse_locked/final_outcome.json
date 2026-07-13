@@ -1,0 +1,14 @@
+{
+  "broad_auroc_gain": true,
+  "config_sha256": "f43edfd5e1770c61ca2810dac167c0025fe24155e27fc630b8a096de42c6d977",
+  "final_suite": [
+    "NINCO",
+    "SSB-hard"
+  ],
+  "legacy_gate_passed": true,
+  "macro_aupr_out_gain_significant": true,
+  "macro_auroc_gain_significant": true,
+  "macro_fpr95_gain_significant": true,
+  "report_category": "same-condition eligible SOTA achieved",
+  "same_condition_final_sota": true
+}

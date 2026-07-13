@@ -1,0 +1,2 @@
+method,compact_index_bytes,final_prototypes_bytes,additional_persistent_bytes,raw_train_feature_bank_required,classifier_prediction_changed,id_top1_accuracy_delta
+PULSE,71690932,8192000,79885074,False,False,0.0

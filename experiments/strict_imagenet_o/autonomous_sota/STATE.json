@@ -1,15 +1,20 @@
 {
-  "cycle": 96,
+  "cycle": 97,
   "eligible_sota": {
-    "method": "RC-MSPS",
-    "macro_auroc": 0.8876363198137707,
-    "macro_aupr_out": 0.6192729893725474,
-    "macro_fpr95": 0.43441666086326486,
-    "status": "protocol_matched_existing_baseline"
+    "final_macro_auroc": 0.723283953386804,
+    "final_macro_aupr_out": 0.48662178621758545,
+    "final_macro_fpr95": 0.7758016114082986,
+    "legacy_macro_auroc": 0.9114263360092222,
+    "legacy_macro_aupr_out": 0.626109045593972,
+    "legacy_macro_fpr95": 0.3999702361105249,
+    "method": "PULSE",
+    "status": "same_condition_final_sota_bootstrap_confirmed"
   },
   "final_benchmark": {
-    "evaluation_executed": false,
-    "feature_extraction_executed": false,
+    "completed_utc": "2026-07-13T22:55:15.929691+00:00",
+    "evaluation_executed": true,
+    "feature_extraction_executed": true,
+    "locked_config_sha256": "f43edfd5e1770c61ca2810dac167c0025fe24155e27fc630b8a096de42c6d977",
     "manifest": {
       "aggregate_sha256": "6dbd4c0a9b4bc9db40a0e430c82dd3c95e2dd82ae116f0761db57d6243c401e5",
       "image_count": 54879,
@@ -17,18 +22,32 @@
     },
     "preregistration": "configs/final_benchmark_preregistration.json",
     "preregistration_sha256": "9c1ec49308b328bbb5b91b56581a78461101423e7b96e82309ba0238a059575a",
+    "results": {
+      "macro_aupr_out_diff_vs_rc_msps": 0.04206071327540251,
+      "macro_auroc_diff_vs_rc_msps": 0.0360973400043393,
+      "macro_fpr95_diff_vs_rc_msps": -0.0427338069434271,
+      "paired_macro_aupr_out_ci": [
+        0.03688256864994406,
+        0.04700265921484116
+      ],
+      "paired_macro_auroc_ci": [
+        0.03370936606105437,
+        0.03840549000841423
+      ],
+      "paired_macro_fpr95_ci": [
+        -0.05195663521319403,
+        -0.03395402704541586
+      ],
+      "path": "final_results/pulse_locked",
+      "status": "same_condition_eligible_sota_achieved"
+    },
     "suite": [
       "NINCO",
       "SSB-hard"
     ]
   },
-  "last_successful_checkpoint": "cycle96_pulse_passed_image_proxy_legacy_bootstrap_and_ablation",
-  "next_hypotheses": [
-    "lock_PULSE_equation_state_code_and_manifests",
-    "extract_untouched_NINCO_and_SSB_hard_once",
-    "run_locked_final_evaluation_and_2000_paired_bootstrap",
-    "run_second_reproduction_from_locked_config"
-  ],
+  "last_successful_checkpoint": "cycle97_pulse_final_sota_reproduction_and_bootstrap_complete",
+  "next_hypotheses": [],
   "pareto_best": [
     {
       "imagenet_o_auroc": 0.8210932,
@@ -36,16 +55,23 @@
       "macro_auroc": 0.9114263360092222,
       "macro_fpr95": 0.3999702361105249,
       "method": "PULSE",
-      "status": "legacy_success_proxy_promoted_bootstrap_confirmed_awaiting_final_lock"
+      "status": "legacy_and_untouched_final_sota_bootstrap_confirmed"
+    },
+    {
+      "final_macro_aupr_out": 0.48662178621758545,
+      "final_macro_auroc": 0.723283953386804,
+      "final_macro_fpr95": 0.7758016114082986,
+      "method": "PULSE",
+      "status": "untouched_ninco_ssb_hard_pareto"
     }
   ],
   "running_jobs": [],
-  "status": "ready_for_final_lock",
-  "updated_utc": "2026-07-13T22:30:00Z",
+  "status": "complete_success",
+  "updated_utc": "2026-07-13T22:58:00Z",
   "validated_hypotheses": [
     {
-      "count_materially_distinct": 123,
-      "highest_completed_hypothesis_id": "H145",
+      "count_materially_distinct": 124,
+      "highest_completed_hypothesis_id": "H146",
       "registry": "HYPOTHESES.md"
     },
     {
@@ -116,6 +142,12 @@
     {
       "id": "H145_image_space_proxy_repair",
       "result": "completed_patch_shuffle_and_cutmix_spearman_0.9_kendall_0.8"
+    },
+    {
+      "id": "H146_locked_final_evaluation",
+      "macro_auroc_diff_vs_rc_msps": 0.0360973400043393,
+      "macro_fpr95_diff_vs_rc_msps": -0.0427338069434271,
+      "result": "same_condition_final_sota_bootstrap_confirmed"
     }
   ]
 }

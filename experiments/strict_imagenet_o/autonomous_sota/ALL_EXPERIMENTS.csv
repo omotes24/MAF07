@@ -61,3 +61,4 @@ H142,93,H142,legacy_full,failed,CauchyMinSUL,,,,0.864316894,0.461560,0.511158,0.
 H143,94,H143,legacy_full,failed,CauchyRawEnvelopeULK,,,,0.864921,0.454232,0.519413,0.767082,,,Passed obsolete feature-space proxy; failed legacy and ImageNet-O
 H144,95,H144,legacy_full,failed,CauchyQuantileEnvelopeULK,,,,0.886053,0.447671,0.598857,0.790674,,,Passed obsolete feature-space proxy; failed legacy and ImageNet-O
 H145,96,H145,proxy_infrastructure,completed,ImageSpaceProxyRepair,,,,,,,,,,Patch shuffle and center CutMix selected; phase mix rejected by negative rank fidelity
+H146,97,H146,untouched_final,success,PULSE,f43edfd5e1770c61ca2810dac167c0025fe24155e27fc630b8a096de42c6d977,,,0.723283953386804,0.7758016114082986,0.48662178621758545,,0.0360973400043393,-0.0427338069434271,NINCO and SSB-hard; both AUROC gains positive; all 2000-draw paired macro CIs exclude zero

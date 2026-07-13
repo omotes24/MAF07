@@ -112,3 +112,14 @@
 - Extracted three image-space ID-only pseudo-OOD families from 1,000 fixed ImageNet validation images on four GPUs. Patch permutation and center CutMix each achieved frozen-method Spearman `0.9` and Kendall `0.8`; phase mixing scored `-0.9/-0.8` and was rejected.
 - PULSE passed both selected image proxies and the worst-case requirement. Leave-one-component-out ablation reduced macro AUROC by `0.008377` (shift), `0.009966` (uniformity), `0.027158` (localized support), and `0.009002` (compact KNN); every removal worsened FPR95.
 - No NINCO or SSB-hard feature, score, prediction, or decoded image has been accessed. The next action is immutable code/config lock, followed by one final-suite evaluation.
+
+## 2026-07-13 - Cycle 97 Final Lock and Evaluation
+
+- Fixed the executable code at commit `f18785ecfcc09e64b91ce2b23afb1aeb9ec79500` and wrote `configs/final_locked_config.json` with SHA-256 `f43edfd5e1770c61ca2810dac167c0025fe24155e27fc630b8a096de42c6d977` before final-suite decoding.
+- Verified hashes for the ResNet50d state, PULSE state, RC-MSPS state/config, compact IVF-PQ index, ID scores, all runtime code, and the 54,879-row final manifest.
+- Evaluated all 5,879 NINCO and 49,000 SSB-hard images once with one frozen PULSE configuration. PULSE beat RC-MSPS on both datasets: NINCO AUROC `0.836081` vs `0.792441`; SSB-hard `0.610486` vs `0.581932`.
+- Final macro AUROC/FPR95/AUPR-OUT were `0.723284/0.775802/0.486622`, versus RC-MSPS `0.687187/0.818535/0.444561`.
+- The 2,000-draw paired macro differences were AUROC `+0.036102 [0.033709, 0.038405]`, FPR95 `-0.042785 [-0.051957, -0.033954]`, and AUPR-OUT `+0.042045 [0.036883, 0.047003]`; every good rate was `1.0`.
+- Integrity audit passed: exact manifest path match, zero duplicates, all finite scores, and maximum saved-formula discrepancy below `4.8e-7`.
+- Total locked run time was `306.37 s`; persistent method state is `79,885,074` bytes and does not retain a raw train feature bank. The classifier is untouched, so ID classification accuracy delta is exactly zero.
+- Stopping condition A is satisfied: same-condition eligible SOTA, reproduction, full untouched evaluation, and paired bootstrap are complete.

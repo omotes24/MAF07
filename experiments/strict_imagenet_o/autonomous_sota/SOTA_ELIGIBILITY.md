@@ -3,7 +3,7 @@
 ## Fixed Protocol
 
 - Backbone: frozen `timm/resnet50d.ra2_in1k`.
-- Weight SHA-256: `9c170e1af55e7ca051be5f147e86b7ddcf2e9ec2b4836ffe85e0bb940ec62827`.
+- Model-state SHA-256: `6f0b5ee0bea90806aa619a32ccea114c80b528965fecf0d07a31f6ac3f5b9e9b`.
 - Input: direct bilinear resize to `224x224`, then ImageNet normalization.
 - ID train statistics: at most the fixed 200-images-per-class ImageNet mirror.
 - ID test: official ImageNet validation, 50,000 images.
@@ -14,7 +14,8 @@
 
 | Method | Extra ID statistics | Additional training | Inductive | Macro AUROC | Macro FPR95 | Eligible |
 |---|---|---|---|---:|---:|---|
-| RC-MSPS | class score distributions | No | Yes | 0.887636 | 0.434417 | Yes, current provisional SOTA |
+| PULSE | compact IVF-PQ support and class prototypes | No | Yes | **0.911426** | **0.399970** | Yes, legacy-suite SOTA |
+| RC-MSPS | class score distributions | No | Yes | 0.887636 | 0.434417 | Yes, fixed comparator |
 | MSPS | class prototypes | No | Yes | 0.881466 | 0.485732 | Yes |
 | NNGuide | deterministic 10k energy-weighted ID bank | No | Yes | 0.853549 | 0.546116 | Yes; official formula, below SOTA |
 | ViM | covariance and classifier | No | Yes | 0.836215 | 0.688679 | Yes |
@@ -25,6 +26,22 @@
 | Energy | None | No | Yes | 0.710313 | 0.784704 | Yes |
 | ASH-S | None | No | Yes | 0.632004 | 0.829121 | Yes |
 | ReAct | ID-train clipping quantile | No | Yes | 0.625164 | 0.923555 | Yes |
+
+## Untouched Final-Suite Confirmation
+
+The NINCO and SSB-hard suite was preregistered and remained inaccessible to
+method selection until PULSE's equation, hyperparameters, artifacts, code
+commit, and manifest were locked. The final suite was then evaluated once.
+
+| Method | NINCO AUROC | SSB-hard AUROC | Macro AUROC | Macro FPR95 | Macro AUPR-OUT |
+|---|---:|---:|---:|---:|---:|
+| PULSE | **0.836081** | **0.610486** | **0.723284** | **0.775802** | **0.486622** |
+| RC-MSPS | 0.792441 | 0.581932 | 0.687187 | 0.818535 | 0.444561 |
+
+PULSE improves Macro AUROC by `+0.036097`, Macro FPR95 by `-0.042734`, and
+Macro AUPR-OUT by `+0.042061`. All three 2,000-draw paired-bootstrap 95%
+confidence intervals exclude zero in the favorable direction. PULSE also wins
+on AUROC for both individual final datasets.
 
 ## External Methods Under Audit
 
@@ -46,4 +63,7 @@
 - NINCO official repository: https://github.com/j-cb/NINCO
 - NINCO paper: https://proceedings.mlr.press/v202/bitterwolf23a.html
 
-The closest published nearest-neighbor alternative has now been rerun under the exact fixed model and cache. RC-MSPS remains the eligible same-condition SOTA; any further external method must meet the same protocol before its number can displace it.
+The closest published nearest-neighbor alternative has been rerun under the
+exact fixed model and cache. PULSE is the eligible same-condition SOTA on both
+the legacy suite and the preregistered untouched final suite. Any external
+method must meet the same protocol before its number can displace it.

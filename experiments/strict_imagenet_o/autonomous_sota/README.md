@@ -55,6 +55,22 @@ runs four fixed GPU shards, evaluates PULSE and RC-MSPS, performs 2,000 paired
 bootstrap draws, and writes `RESULTS.md`, per-dataset metrics, runtime/storage
 accounting, and post-lock error analysis.
 
+## Untouched final result
+
+The locked evaluation completed once on NINCO (5,879 images) and SSB-hard
+(49,000 images):
+
+| Metric | PULSE | RC-MSPS | Difference |
+|---|---:|---:|---:|
+| Macro AUROC | **0.723284** | 0.687187 | **+0.036097** |
+| Macro FPR95 | **0.775802** | 0.818535 | **-0.042734** |
+| Macro AUPR-OUT | **0.486622** | 0.444561 | **+0.042061** |
+
+All three paired-bootstrap 95% confidence intervals exclude zero in the
+favorable direction, and PULSE improves AUROC on each final dataset. The full
+score-level record, confidence intervals, failure cases, runtime, and storage
+accounting are in `final_results/pulse_locked/RESULTS.md`.
+
 ## Research record
 
 - `STATE.json`: current checkpoint and final-access state
