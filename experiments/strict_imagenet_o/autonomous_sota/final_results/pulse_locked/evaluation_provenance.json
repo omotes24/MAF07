@@ -1,0 +1,7 @@
+{
+  "config_sha256": "f43edfd5e1770c61ca2810dac167c0025fe24155e27fc630b8a096de42c6d977",
+  "final_suite_accessed_once_after_lock": true,
+  "same_locked_method_all_datasets": true,
+  "target_ood_used_for_fit_or_calibration": false,
+  "test_image_sharing": false
+}

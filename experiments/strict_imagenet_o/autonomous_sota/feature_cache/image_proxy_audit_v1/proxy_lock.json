@@ -1,0 +1,25 @@
+{
+  "atom_sha256": {
+    "canonical": "b28f497a6d08fd78c7fbd861f7ec7120d310a0596168ff45667848e6020196ba",
+    "center_cutmix": "3f901c702a005c4ab42c6066a7417c8c2d0125fc64b5c1c5a2d1d52ed6d8489e",
+    "patch_shuffle4": "bf60ba9e816478d6e9861e4e3ea8bd0a11a83a7d56d4461d692edb8804691a72",
+    "phase_mix": "080e08089c059d1f194b2e89e69af0e8e557f7c7b2025bb9352044572de330d5"
+  },
+  "candidate_selection_may_read_legacy_ood": false,
+  "final_benchmark_accessed": false,
+  "frozen_legacy_macro_AUROC": {
+    "CauchyStageTail": 0.8555907992525729,
+    "DeepPrototype": 0.8899290047931596,
+    "MSPS": 0.8814656948374291,
+    "PULSE": 0.9114263360092222,
+    "RC-MSPS": 0.8876363198137707
+  },
+  "legacy_values_used_for_proxy_infrastructure_only": true,
+  "payload_sha256": "b8b988d9225f90939d7177fbbbdbd4f8cff35a7c551d89a0dc2ebe7357bbf999",
+  "selected_proxies": [
+    "patch_shuffle4",
+    "center_cutmix"
+  ],
+  "selection_rule": "top three image-space proxies with positive frozen-method Spearman and Kendall fidelity",
+  "source_manifest_sha256": "2c8095d74b932f92cac66b217aa6ae81f07bdb33a9934c2f012b365a350b1ce3"
+}

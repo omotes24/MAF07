@@ -1,0 +1,278 @@
+{
+  "artifacts": {
+    "atomic_fit": {
+      "bytes": 281574,
+      "path": "/home/omote/strict_imagenet_o/autonomous_sota/feature_cache/atomic/atomic_fit_state.npz",
+      "sha256": "17bb8f035936ade433e4ea8b443b16be5e6fdd8ce46efe977bc15184af9d8c4a"
+    },
+    "compact_index": {
+      "bytes": 71690932,
+      "path": "/home/omote/strict_imagenet_o/autonomous_sota/feature_cache/compact_knn_ivfpq256/angular_support.faiss",
+      "sha256": "e4c473961cc4d4ee092a0b0303718fd37dd9c06d812e501a5824aeb12dc883ad"
+    },
+    "final_manifest": {
+      "bytes": 9426542,
+      "path": "/home/omote/strict_imagenet_o/autonomous_sota/final_results/prereg_manifest/final_dataset_manifest.jsonl",
+      "sha256": "6dbd4c0a9b4bc9db40a0e430c82dd3c95e2dd82ae116f0761db57d6243c401e5"
+    },
+    "final_manifest_summary": {
+      "bytes": 1477,
+      "path": "/home/omote/strict_imagenet_o/autonomous_sota/final_results/prereg_manifest/final_dataset_manifest.json",
+      "sha256": "00321b523cc707607356ad3d4726bfc9554df282fcffe7f09c9b81da6df5fa82"
+    },
+    "final_preregistration": {
+      "bytes": 2206,
+      "path": "/home/omote/strict_imagenet_o/autonomous_sota/configs/final_benchmark_preregistration.json",
+      "sha256": "9c1ec49308b328bbb5b91b56581a78461101423e7b96e82309ba0238a059575a"
+    },
+    "id_paths_rank0": {
+      "bytes": 1412500,
+      "path": "/home/omote/strict_imagenet_o_results/cache/imagenet_val.rank0.jsonl",
+      "sha256": "38c6a4dcc6fc4aa0ed7f23591375449277b1768195d98f5555591577f25e3e13"
+    },
+    "id_paths_rank1": {
+      "bytes": 1412500,
+      "path": "/home/omote/strict_imagenet_o_results/cache/imagenet_val.rank1.jsonl",
+      "sha256": "314507406e88d7b63546c77b04984c6e1d7a1b322c78ad5eae2ec3a154a6a84e"
+    },
+    "id_paths_rank2": {
+      "bytes": 1412500,
+      "path": "/home/omote/strict_imagenet_o_results/cache/imagenet_val.rank2.jsonl",
+      "sha256": "53e34dfdc5044f842fa42af02fdc276fc4458511e10735ce660c7b701f31efd0"
+    },
+    "id_paths_rank3": {
+      "bytes": 1412500,
+      "path": "/home/omote/strict_imagenet_o_results/cache/imagenet_val.rank3.jsonl",
+      "sha256": "a021620d20e8bbd3a27cfea55599da6e9dc4bd2ac3666e09b596fd9abe3b68c4"
+    },
+    "id_scores": {
+      "bytes": 365499,
+      "path": "/home/omote/strict_imagenet_o/autonomous_sota/legacy_results/cycle87_pulse/id_scores.npz",
+      "sha256": "333e348cb13e6436c972550ee0b2d85f627c7a322d22f4f67356a9f54a3a7a7c"
+    },
+    "proxy_lock": {
+      "bytes": 1111,
+      "path": "/home/omote/strict_imagenet_o/autonomous_sota/feature_cache/image_proxy_audit_v1/proxy_lock.json",
+      "sha256": "35806a229bab4c50e7ee47b8161aab09a58ca3392c65fb29fb49cb3a24baf5b0"
+    },
+    "pulse_state": {
+      "bytes": 2142,
+      "path": "/home/omote/strict_imagenet_o/autonomous_sota/locked_models/cycle87_pulse/state.npz",
+      "sha256": "8af1b559bf56c5978e420613b7b26398c24d32f0c13983ea785fd8dd85ad4bdc"
+    },
+    "rc_config": {
+      "bytes": 5683,
+      "path": "/home/omote/strict_imagenet_o/msps_sota/configs/locked_config.json",
+      "sha256": "395b6583e842c37847e24e8c1052cc9a71ae38ce6f3b39133a1550a453640b08"
+    },
+    "rc_state": {
+      "bytes": 32348124,
+      "path": "/home/omote/strict_imagenet_o_results/msps_sota/locked_state.npz",
+      "sha256": "5f9c236959ea439d1fb2df410f99183ee8a10d9bfcfdda27b61c266466754cfa"
+    }
+  },
+  "code_commit": "f18785ecfcc09e64b91ce2b23afb1aeb9ec79500",
+  "code_root": "/home/omote/strict_imagenet_o/autonomous_sota",
+  "code_sha256": {
+    "../extract_resnet50d_views.py": "6ca74e8e7e1845a11911183806a7c142b1b985ecc263485d46f57ff2fb6711fa",
+    "../msps_sota/calibration.py": "25184c1e33d2a97d8ce1b3269d465b86074887d780b40392a9339d7ffebd106b",
+    "../msps_sota/feature_cache.py": "56aa6fedb38da208d70042d482956bc64f81b6fa5d86ba17fd99561b61734abc",
+    "../msps_sota/prototype_stats.py": "82c394e8f53aafb3317daa493a42cdf28865a83b51ab1b96c7586579a62577ee",
+    "../msps_sota/scores.py": "e1f91d58d23b221edde4a96df1a9a1fad8f9f8eda847f49ee5b7cf6df7053ee6",
+    "../simple_fusion/vim_score.py": "9daa68b0b0d0a8f308d061e457aa2f45ed3cc87ac2587d47ca4d18ff37d9fddc",
+    "audit_symmetric_support_proxy.py": "4b9acabcb2e09c4f5d9a0ad36f4aecde17721541a0a592d66c90271251da0698",
+    "bootstrap_final_locked.py": "e54958208a8dbf1fbb4e752113347529c09a1666a15b4204338b5a99203f5a94",
+    "build_atomic_cache.py": "ff00dd70d7879b363c39df32c86476a24a91ce81d0be5f79fd72f0d93b9fc43b",
+    "evaluate_final_locked.py": "cbcdb0f9c3dcea7d6f2c3f53a6fc331edc70c55bd6c769f5bbc910a6192610cb",
+    "extract_final_locked.py": "446cb5036629ef3454fc7777310570e7889e5e5329b200ef8a44e660888e312b",
+    "extract_saliency_views.py": "ceff160d41215996f043e8e962145ba46497f10c3b88f6244c1d8c36f0ddd26a",
+    "final_lock.py": "ebc79111f48b87668e4cf895d2895c15921ac1600d1a5d53e42703def05fa0b1",
+    "methods/activation_shift.py": "684aa89f452830a6a0e1a246bdefc5c125facdc5d87f607a8a05c47a65119900",
+    "methods/atomic_components.py": "d07fcd3e51db84782ec33479031a0b3a3b801bfaccf1adc78457ccfded7d7c5a",
+    "methods/bilateral_distribution.py": "bc40e7542225d02d46d8b46da1b3e59556b3c298e3b832cbce03c8a7f27f7b13",
+    "methods/compact_knn.py": "a7a78daf733fa81925363eeb0953b76818acbd5800918fbec3a282a5749218cf",
+    "methods/id_proxies.py": "a7809aa476ea038415bbb838ef1f0e6239ceb122f6b06ad17e447d7835a4b19d",
+    "methods/localized_views_v2.py": "6bca851a47a2fa3399d3590e8835ff40ce499ae18e4d7b5a26e1a49fc7a26ab6",
+    "methods/nnguide.py": "d3edf6ada449075f6a0d53c44eaf8b206aeaec83aff1bd5185851869bf90e75f",
+    "methods/pulse.py": "29908a3478ef61151563f4adf0782a1cf99c1320633286ae757120aed79db4de",
+    "methods/symmetric_support.py": "7a248b34d93515f61ad39e3975e3310667a5c05683c8967f1936c1b20535beee",
+    "reproduce_nnguide.py": "b1154a546bad903605c0f709c0ceac38f0b28b79b3bc0fb2e4613191920a65b5",
+    "run_final_locked.py": "6efb39abcb35a8a211f172b19ef15c0222772a072b299555f52d7ed281928678",
+    "summarize_final_locked.py": "514cadd2c5229a31ba8d92de2f944746ade11bb882ca7d13b25d22028540f104",
+    "validate_proxies.py": "574a4b3139488f8eb114f76b6adfc22e8bb0ff87e90187b18edf778cb1638c5b"
+  },
+  "environment": {
+    "cuda": "12.1",
+    "cudnn": 90100,
+    "faiss": "1.14.3",
+    "gpu": "4 x NVIDIA GeForce RTX 2080 Ti (11264 MiB each)",
+    "numpy": "2.5.0",
+    "pandas": "3.0.3",
+    "platform": "Linux-6.8.0-59-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "sklearn": "1.9.0",
+    "timm": "1.0.27",
+    "torch": "2.5.1+cu121"
+  },
+  "evaluation": {
+    "bootstrap_seed": 20260713,
+    "macro_aggregation": "unweighted mean across NINCO and SSB-hard",
+    "metrics": [
+      "AUROC",
+      "FPR95",
+      "AUPR-OUT"
+    ],
+    "paired_bootstrap_replicates": 2000,
+    "paired_comparator": "RC-MSPS",
+    "worst_dataset_metric": "minimum AUROC"
+  },
+  "execution": {
+    "activation_batch_size": 32,
+    "bootstrap_workers": 16,
+    "devices": [
+      "cuda:0",
+      "cuda:1",
+      "cuda:2",
+      "cuda:3"
+    ],
+    "faiss_threads_per_process": 6,
+    "knn_batch_size": 1024,
+    "localized_batch_size": 16,
+    "multiview_batch_size": 48,
+    "num_shards": 4,
+    "python": "/home/omote/granood_ke/.venv/bin/python",
+    "score_batch_size": 512,
+    "workers_per_gpu": 4
+  },
+  "final_evaluation_executed": false,
+  "final_suite": {
+    "aggregate_file_manifest_sha256": "6dbd4c0a9b4bc9db40a0e430c82dd3c95e2dd82ae116f0761db57d6243c401e5",
+    "data_root": "/home/omote/datasets/autonomous_sota_final",
+    "datasets": [
+      {
+        "expected_images": 5879,
+        "key": "ninco",
+        "manifest_name": "NINCO",
+        "name": "NINCO",
+        "role": "near-OOD"
+      },
+      {
+        "expected_images": 49000,
+        "key": "ssb_hard",
+        "manifest_name": "SSB-hard",
+        "name": "SSB-hard",
+        "role": "near-OOD"
+      }
+    ],
+    "suite_id": "openood_imagenet_near_unseen_20260713",
+    "total_images": 54879,
+    "untouched_before_this_lock": true
+  },
+  "id_reference": {
+    "dataset": "ImageNet-1K official validation",
+    "images": 50000,
+    "path_artifacts": [
+      "id_paths_rank0",
+      "id_paths_rank1",
+      "id_paths_rank2",
+      "id_paths_rank3"
+    ],
+    "score_artifact": "id_scores"
+  },
+  "legacy_gate": {
+    "ablation_all_component_removals_worsen_auroc_and_fpr95": true,
+    "image_proxy_gate_passed": true,
+    "paired_auroc_ci": [
+      0.02186420086179446,
+      0.025759780803151385
+    ],
+    "paired_fpr95_ci": [
+      -0.04484074159561902,
+      -0.023158173155045765
+    ],
+    "passed": true,
+    "pulse_imagenet_o_auroc": 0.8210932,
+    "pulse_macro_aupr_out": 0.626109045593972,
+    "pulse_macro_auroc": 0.9114263360092222,
+    "pulse_macro_fpr95": 0.3999702361105249,
+    "rc_msps_macro_aupr_out": 0.6192729893725474,
+    "rc_msps_macro_auroc": 0.8876363198137706,
+    "rc_msps_macro_fpr95": 0.4344166608632648
+  },
+  "lock_status": "locked_before_final_access",
+  "locked_utc": "2026-07-13T22:48:17Z",
+  "method": {
+    "components": [
+      "ReLU(z_ID(log1p(activation_shift_ratio)))",
+      "ReLU(z_ID(class_center_uniform_cosine))",
+      "z_ID(-localized_prototype_max)",
+      "z_ID(-compact_multiview_knn_confidence)"
+    ],
+    "constraints": {
+      "fine_tuning": false,
+      "free_hyperparameters": 3,
+      "major_score_components": 4,
+      "raw_train_feature_bank_required": false,
+      "same_configuration_all_datasets": true,
+      "target_ood_fit_or_calibration": false,
+      "test_image_sharing": false
+    },
+    "equation": "ReLU(z_shift)+ReLU(z_uniform)+z_localized+z_knn",
+    "feature_layers": {
+      "activation_shift": "ResNet50d final pooled feature before/after fixed input perturbation",
+      "compact_knn": "mean final pooled feature over five deterministic views",
+      "localized_support": "final pooled feature over four deterministic CAM/energy crops",
+      "uniformity": "canonical final pooled feature against 1000 train-only class prototypes"
+    },
+    "hyperparameters": {
+      "activation_perturb_fraction": 0.05,
+      "activation_perturb_magnitude": 0.5,
+      "knn_k": 200
+    },
+    "implementation": {
+      "faiss_index": "IndexIVFPQ, inner product, 256 subquantizers",
+      "faiss_nprobe": 64,
+      "fixed_multiviews": [
+        "full",
+        "full_hflip",
+        "zoom90",
+        "zoom90_hflip",
+        "zoom80"
+      ],
+      "localized_views": [
+        "cam_mass50",
+        "energy_mass50",
+        "energy_mass80",
+        "energy_peak3"
+      ],
+      "standardization": "ID-validation median and 1.4826*MAD; frozen in pulse_state",
+      "unit_component_weights": true
+    },
+    "name": "PULSE",
+    "prototype_estimation": "1000 final-stage class prototypes from frozen train-only RC-MSPS state",
+    "score_orientation": "larger_is_more_OOD"
+  },
+  "model": {
+    "fine_tuned": false,
+    "hf_hub_id": "timm/resnet50d.ra2_in1k",
+    "preprocessing": "direct Resize((224,224)) bilinear, RGB, ImageNet mean/std normalization",
+    "state_dict_sha256": "6f0b5ee0bea90806aa619a32ccea114c80b528965fecf0d07a31f6ac3f5b9e9b",
+    "timm_name": "resnet50d.ra2_in1k"
+  },
+  "outputs": {
+    "result_dir": "/home/omote/strict_imagenet_o/autonomous_sota/final_results/pulse_locked",
+    "score_shard_dir": "/home/omote/strict_imagenet_o/autonomous_sota/final_results/pulse_locked/scores"
+  },
+  "resource_accounting": {
+    "additional_persistent_bytes": 79885074,
+    "compact_index_bytes": 71690932,
+    "final_prototypes_bytes": 8192000,
+    "pulse_state_bytes": 2142,
+    "raw_train_feature_bank_required": false
+  },
+  "seeds": {
+    "bootstrap": 20260713,
+    "faiss_index_build": 0,
+    "feature_extraction": "deterministic transforms; no RNG"
+  }
+}

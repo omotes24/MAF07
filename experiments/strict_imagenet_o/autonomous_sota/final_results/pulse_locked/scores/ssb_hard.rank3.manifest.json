@@ -1,0 +1,15 @@
+{
+  "config_sha256": "f43edfd5e1770c61ca2810dac167c0025fe24155e27fc630b8a096de42c6d977",
+  "dataset": "ssb_hard",
+  "final_access_authorized_by_pre_access_lock": true,
+  "image_hashes_verified_before_decoding": true,
+  "model_state_dict_sha256": "6f0b5ee0bea90806aa619a32ccea114c80b528965fecf0d07a31f6ac3f5b9e9b",
+  "num_shards": 4,
+  "output_sha256": "f11db5d1ec84dbbcabe7025f2608edf9620705fe18f7e857eee35d25638139cb",
+  "rows": 12250,
+  "runtime_seconds": 192.83871793746948,
+  "same_locked_method_for_every_image": true,
+  "shard_index": 3,
+  "target_ood_used_for_fit_or_calibration": false,
+  "test_image_sharing": false
+}

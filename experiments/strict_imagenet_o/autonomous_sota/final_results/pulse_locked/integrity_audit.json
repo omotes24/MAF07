@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "locked_config_sha256": "f43edfd5e1770c61ca2810dac167c0025fe24155e27fc630b8a096de42c6d977",
+  "code_commit": "f18785ecfcc09e64b91ce2b23afb1aeb9ec79500",
+  "datasets": {
+    "NINCO": {
+      "rows": 5879,
+      "unique_paths": 5879,
+      "manifest_paths_match_exactly": true,
+      "all_scores_finite": true,
+      "max_pulse_formula_abs_error": 4.6160286970575726e-7
+    },
+    "SSB-hard": {
+      "rows": 49000,
+      "unique_paths": 49000,
+      "manifest_paths_match_exactly": true,
+      "all_scores_finite": true,
+      "max_pulse_formula_abs_error": 4.76303442908943e-7
+    }
+  },
+  "paired_bootstrap": {
+    "iterations": 2000,
+    "summary_rows": 9,
+    "draw_rows": 18000,
+    "macro_confidence_intervals_favorable": {
+      "AUROC": true,
+      "FPR95": true,
+      "AUPR_OUT": true
+    }
+  },
+  "failure_case_rows": 300
+}

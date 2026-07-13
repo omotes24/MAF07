@@ -4,6 +4,24 @@ MAF07 is an 8-class wild-cat closed classification and OOD detection experiment.
 The main proposed OOD method in this repository is **RSN: Robust
 Scale-Normalized kNN**.
 
+The repository also contains the separate fixed-ResNet50d strict-fair-inductive
+track, **PULSE**, under
+[`experiments/strict_imagenet_o/autonomous_sota/`](experiments/strict_imagenet_o/autonomous_sota/).
+PULSE was selected without target-OOD access and then evaluated once on the
+preregistered untouched NINCO and SSB-hard suite. It improves over the
+same-condition RC-MSPS comparator on every macro metric:
+
+| Metric | PULSE | RC-MSPS | Difference |
+|---|---:|---:|---:|
+| Macro AUROC | **0.723284** | 0.687187 | **+0.036097** |
+| Macro FPR95 | **0.775802** | 0.818535 | **-0.042734** |
+| Macro AUPR-OUT | **0.486622** | 0.444561 | **+0.042061** |
+
+The complete lock, implementation, raw scores, 2,000-draw paired bootstrap,
+and integrity audit are linked from the PULSE
+[`README`](experiments/strict_imagenet_o/autonomous_sota/README.md) and final
+[`RESULTS`](experiments/strict_imagenet_o/autonomous_sota/final_results/pulse_locked/RESULTS.md).
+
 RSN is the promoted name for the legacy experiment label
 `diagcard_huber_raw`. It applies class-conditional diagonal feature scaling,
 Huberizes the neighbor residual, and uses the raw minimum class distance without

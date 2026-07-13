@@ -1,0 +1,15 @@
+{
+  "final_benchmark_accessed": false,
+  "fit_data": "independent ImageNet ID validation only",
+  "input_sha256": {
+    "/home/omote/strict_imagenet_o/autonomous_sota/feature_cache/bilateral_distribution/validation.npz": "a3c6ccec405124d8e9839254524af13aaaa616b127ed8ebb0842c786c1ca6d4d",
+    "/home/omote/strict_imagenet_o/autonomous_sota/feature_cache/compact_multiview_knn256/validation.npz": "4ce62969e9f042b25eb86a27b7bd5c7e6a961e9e8d70597e7c534ae151b0006b",
+    "/home/omote/strict_imagenet_o/autonomous_sota/feature_cache/localized_semantics_v2/validation.npz": "c96706ae3d71bac67760b9d458ba817cd623a310eb530a7b9909802aa9bfa1eb",
+    "/home/omote/strict_imagenet_o/autonomous_sota/legacy_results/cycle46_activation_shift_locked/state.npz": "366c14e461f55e35e77c8e2d7603cfe5546e8e58f31ab52e797a982b1231a009"
+  },
+  "learned_component_weights": false,
+  "method": "PULSE",
+  "score_components": 4,
+  "state_sha256": "8af1b559bf56c5978e420613b7b26398c24d32f0c13983ea785fd8dd85ad4bdc",
+  "target_ood_used_for_fit_or_selection": false
+}

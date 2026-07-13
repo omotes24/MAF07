@@ -1,0 +1,58 @@
+{
+  "allowed_before_final_lock": [
+    "download raw archives",
+    "verify archive and file-list hashes",
+    "count files without decoding images"
+  ],
+  "datasets": [
+    {
+      "expected_images": 5879,
+      "google_drive_file_id": "1Z82cmvIB0eghTehxOGP5VTdLt7OD3nk6",
+      "name": "NINCO",
+      "openood_alias": "ninco",
+      "role": "near-OOD",
+      "source": "OpenOOD v1.5 mirror of the official NINCO release",
+      "upstream_dataset_url": "https://zenodo.org/record/8013288/files/NINCO_all.tar.gz?download=1"
+    },
+    {
+      "expected_images": 49000,
+      "google_drive_file_id": "1PzkA-WGG8Z18h0ooL_pDdz9cO-DCIouE",
+      "name": "SSB-hard",
+      "openood_alias": "ssb_hard",
+      "role": "near-OOD",
+      "source": "OpenOOD v1.5 ImageNet-1K hard semantic-shift split",
+      "upstream_dataset_url": "https://github.com/sgvaze/osr_closed_set_all_you_need"
+    }
+  ],
+  "evaluation": {
+    "id_dataset": "ImageNet-1K official validation, 50000 images",
+    "macro_aggregation": "unweighted mean across NINCO and SSB-hard",
+    "metrics": [
+      "AUROC",
+      "FPR95",
+      "AUPR-OUT"
+    ],
+    "paired_bootstrap_replicates": 2000,
+    "same_locked_method_for_every_dataset": true
+  },
+  "final_evaluation_executed": false,
+  "forbidden_before_final_lock": [
+    "decode final benchmark images for method development",
+    "extract model features from final benchmark images",
+    "compute any model score or metric on final benchmark images",
+    "inspect per-image predictions",
+    "change the suite after observing a score"
+  ],
+  "legacy_development_benchmarks": [
+    "Texture",
+    "iNaturalist",
+    "OpenImage-O",
+    "ImageNet-O"
+  ],
+  "openood_commit": "3c35632ee91b54b09d1f085d04f94744cece7d0b",
+  "preregistered_utc": "2026-07-13T10:27:21Z",
+  "protocol": "frozen timm/resnet50d.ra2_in1k; canonical direct 224x224 bilinear resize and ImageNet normalization; strict fair inductive",
+  "suite_id": "openood_imagenet_near_unseen_20260713",
+  "target_root_on_hades": "/home/omote/datasets/autonomous_sota_final",
+  "usage_history_assertion": "Neither NINCO nor SSB-hard has been scored or used for coefficient selection in this research thread before preregistration."
+}

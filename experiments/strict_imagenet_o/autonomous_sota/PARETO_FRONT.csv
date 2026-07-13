@@ -1,0 +1,6 @@
+method,stage,macro_AUROC,macro_FPR95,macro_AUPR_OUT,imagenet_o_AUROC,eligible,notes
+RC-MSPS,legacy_full,0.8876363198137707,0.43441666086326486,0.6192729893725474,0.77094992,true,current provisional eligible SOTA
+MSPS,legacy_full,0.8814656948374291,0.4857323263551822,0.5767337440985638,0.79089353,true,uncalibrated prototype baseline
+MVRC-mean,legacy_full_clean,0.892172,0.430616,0.621291,0.780376,true,current clean research Pareto point; below locked success thresholds
+PULSE,legacy_full_proxy_promoted,0.9114263360092222,0.3999702361105249,0.626109045593972,0.8210932,true,meets all legacy numerical gates; paired bootstrap confirmed; untouched final suite also passed
+PULSE,untouched_final,0.723283953386804,0.7758016114082986,0.48662178621758545,,true,NINCO and SSB-hard; AUROC gain on both; 2000-draw paired macro CIs exclude zero

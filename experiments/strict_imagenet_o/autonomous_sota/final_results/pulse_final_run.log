@@ -1,0 +1,46 @@
+run: /home/omote/granood_ke/.venv/bin/python /home/omote/strict_imagenet_o/autonomous_sota/evaluate_final_locked.py --locked-config /home/omote/strict_imagenet_o/autonomous_sota/configs/final_locked_config.json
+ method  dataset  n_id  n_ood    AUROC    FPR95  AUPR_OUT
+  PULSE    NINCO 50000   5879 0.836081 0.666950  0.371468
+RC-MSPS    NINCO 50000   5879 0.792441 0.736520  0.310765
+  PULSE SSB-hard 50000  49000 0.610486 0.884653  0.601776
+RC-MSPS SSB-hard 50000  49000 0.581932 0.900551  0.578357
+ method  Macro_AUROC  Macro_FPR95  Macro_AUPR_OUT
+  PULSE     0.723284     0.775802        0.486622
+RC-MSPS     0.687187     0.818535        0.444561
+         comparison  Macro_AUROC_diff  Macro_FPR95_diff  Macro_AUPR_OUT_diff
+PULSE_minus_RC-MSPS          0.036097         -0.042734             0.042061
+ method  Worst_Dataset_AUROC Worst_Dataset
+  PULSE             0.610486      SSB-hard
+RC-MSPS             0.581932      SSB-hard
+run: /home/omote/granood_ke/.venv/bin/python /home/omote/strict_imagenet_o/autonomous_sota/bootstrap_final_locked.py --locked-config /home/omote/strict_imagenet_o/autonomous_sota/configs/final_locked_config.json
+ dataset   metric  iterations  pulse_mean  rc_msps_mean  mean_diff    ci_low   ci_high  good_rate
+   NINCO    AUROC        2000    0.836053      0.792392   0.043661  0.039779  0.047585        1.0
+   NINCO    FPR95        2000    0.666598      0.736444  -0.069845 -0.084878 -0.055107        1.0
+   NINCO AUPR_OUT        2000    0.371796      0.311135   0.060662  0.051702  0.069227        1.0
+SSB-hard    AUROC        2000    0.610467      0.581924   0.028542  0.026658  0.030485        1.0
+SSB-hard    FPR95        2000    0.884590      0.900314  -0.015724 -0.020776 -0.011040        1.0
+SSB-hard AUPR_OUT        2000    0.601800      0.578372   0.023428  0.020947  0.025883        1.0
+   macro    AUROC        2000    0.723260      0.687158   0.036102  0.033709  0.038405        1.0
+   macro    FPR95        2000    0.775594      0.818379  -0.042785 -0.051957 -0.033954        1.0
+   macro AUPR_OUT        2000    0.486798      0.444753   0.042045  0.036883  0.047003        1.0
+run: /home/omote/granood_ke/.venv/bin/python /home/omote/strict_imagenet_o/autonomous_sota/summarize_final_locked.py --locked-config /home/omote/strict_imagenet_o/autonomous_sota/configs/final_locked_config.json
+{
+  "broad_auroc_gain": true,
+  "config_sha256": "f43edfd5e1770c61ca2810dac167c0025fe24155e27fc630b8a096de42c6d977",
+  "final_suite": [
+    "NINCO",
+    "SSB-hard"
+  ],
+  "legacy_gate_passed": true,
+  "macro_aupr_out_gain_significant": true,
+  "macro_auroc_gain_significant": true,
+  "macro_fpr95_gain_significant": true,
+  "report_category": "same-condition eligible SOTA achieved",
+  "same_condition_final_sota": true
+}
+{
+  "completed_utc": "2026-07-13T22:55:15.929691+00:00",
+  "config_sha256": "f43edfd5e1770c61ca2810dac167c0025fe24155e27fc630b8a096de42c6d977",
+  "final_suite_evaluated_after_lock": true,
+  "runtime_seconds": 306.3690538406372
+}

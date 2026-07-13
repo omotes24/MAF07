@@ -1,0 +1,5 @@
+activation batches=1/46
+multiview batches=1/31
+localized batches=1/92
+localized batches=51/92
+saved=/home/omote/strict_imagenet_o/autonomous_sota/final_results/pulse_locked/scores/ninco.rank1.npz rows=1470

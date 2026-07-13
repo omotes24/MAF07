@@ -1,0 +1,64 @@
+experiment_id,cycle,hypothesis_id,stage,status,method,config_sha256,proxy_mean_rank,proxy_worst_delta,macro_AUROC,macro_FPR95,macro_AUPR_OUT,imagenet_o_AUROC,delta_AUROC_vs_RC_MSPS,delta_FPR95_vs_RC_MSPS,notes
+F00,0,F00_msps_vim_fixed_fusion,legacy_full,failed,MSPS-ViM Simple Fusion,afece108972ec9ade325e989fa6b8fce6bae6c9efe40f186290b67bd949f1ee2,,,0.859667557334065,0.5957395294320404,0.5139972430734112,0.749946,-0.0279687624797057,0.1613228685687756,ID-only class-holdout selection did not transfer
+B01,1,B01_exact_nnguide_protocol_reproduction,legacy_full,completed_below_sota,NNGuide,52ca36d2e6ac0ec3e47750b8c7bb3092bae5f130b8d6bc85ed49750ee0d434a6,,,0.8535489330198424,0.5461162363356266,0.5389883510405162,0.75420197,-0.0340873867939283,0.1116995754723618,Official formula with deterministic 10-per-class ID train bank and k=10
+H06,1,H06,legacy_full,failed,CauchyStageTail,,,,0.855692,0.487968,0.569837,0.76611688,-0.031944,0.053551,Proxy winner failed semantic transfer
+H23,1,H23,legacy_full,failed,TruncatedStageProduct,,,,0.843200,0.526777,0.534301,0.75624115,-0.044436,0.092360,Two-worst-stage product
+H24,1,H24,legacy_full,failed,RobustStageMedian,,,,0.783274,0.653764,0.428069,0.746362115,-0.104363,0.219347,Median stage evidence
+H27,2,H27,legacy_full,failed,ClassCenterCorrection,,,,0.874300,0.474809,0.584729,0.751046,-0.013336,0.040393,Class difficulty equalization removed useful absolute scale
+H30,2,H30,legacy_full,failed,CenterHubnessCorrection,,,,0.875925,0.470560,0.588154,0.752924,-0.011712,0.036143,Center and prototype hub correction
+H32,3,H32,legacy_full,failed,PerViewMeanSupport-clean,,,,0.891390,0.433548,0.619185,0.781270,0.003754,-0.000869,Disjoint ID-validation selected canonical plus flip
+H35,4,H35,legacy_full,current_clean_pareto,MVRC-mean,,,,0.892172,0.430616,0.621291,0.780376,0.004536,-0.003801,Fixed clean two-view support plus RC mean
+H41,5,H41,legacy_full,failed,TTAClassifierConfidence,,,,0.782537,0.677161,0.429166,0.562346,-0.105099,0.242744,Mean deterministic-view logits
+H52,6,H52,legacy_full,failed,TangentDeepGeometric,,,,0.866254,0.494737,0.573617,0.741257,-0.021382,0.060320,Positive tangent ranks did not survive proxy selection
+H53,6,H53,legacy_full,failed,TangentDeepMinimum,,,,0.866750,0.470613,0.562411,0.738836,-0.020886,0.036196,Rank-zero control only
+H54,6,H54,legacy_full,failed,InsignificantPrototype,,,,0.865217,0.498182,0.570503,0.788040,-0.022419,0.063765,Compact ActSub prototype
+H59,7,H59,legacy_full,failed,NullspaceDeepGeometric,,,,0.890103,0.432228,0.621631,0.790799,0.002467,-0.002189,Four-centroid nullspace screen selected one-center control
+H60,7,H60,legacy_full,failed,NullspaceDeepAgreement,,,,0.889880,0.434811,0.620624,0.791351,0.002244,0.000394,Fixed disagreement penalty
+H63,8,H63,id_only_proxy,rejected,ExactGradNorm,,4.0,-0.347134,,,,,,,Exact vectorized OpenOOD formula
+H66,8,H66,legacy_full,failed,LocalRadiusDeepGeometric,,,,0.834331,0.571839,0.505383,0.715698,-0.053305,0.137422,20k train-only local-radius bank
+KNNK,9,B03_full_bank_knn_k_diagnostic,legacy_diagnostic,completed,KNN-k200,,,,0.839136,0.638119,,0.821822,-0.048500,0.203702,ImageNet-O target met but macro performance failed and bank is 200k
+H70,9,H70,legacy_full,failed,BankTailDeepGeometric,,,,0.883775,0.471344,0.595134,0.809763,-0.003861,0.036927,Official-form 20k ActSub tail plus deep support
+H71,9,H71,legacy_full,failed,BankActSubTail,,,,0.805563,0.637802,0.443134,0.804400,-0.082073,0.203385,Official insignificant-subspace local score
+H73,10,H73,id_only_proxy,rejected,ClassRestrictedKNN,,,,,,,,,,No configuration passed clean proxy gate
+H74,10,H74,id_only_proxy,rejected,ClassRestrictedRadius,,,,,,,,,,Train-only local-radius normalization failed proxy gate
+H75,10,H75,id_only_proxy,rejected,RestrictedNeighborAgreement,,,,,,,,,,Classifier/neighbor agreement failed proxy gate
+H77,10,H77,id_only_proxy,rejected,RestrictedKNNDeepGeometric,,,,,,,,,,Best proxy mean rank remained worse than deep prototype
+H78,11,H78,legacy_gate,failed,RankFeat,,,,,,,0.743203,,,ImageNet-O gate only; remaining legacy sets skipped
+H79,11,H79,legacy_gate,failed,SpatialSingularDominance-L3,,,,,,,0.763850,,,Best singular-dominance atom; failed gate
+H80,11,H80,legacy_gate,failed,RankOneEnergyDrop,,,,,,,0.485849,,,Failed ImageNet-O gate
+H81,11,H81,legacy_gate,failed,CAMConcentration,,,,,,,0.685882,,,Best CAM atom; failed gate
+H82,11,H82,legacy_gate,failed,CrossLayerRankCollapse,,,,,,,0.551602,,,Failed ImageNet-O gate
+H83,12,H83,legacy_gate,failed,Mahalanobis++,,,,,,,0.639495,,,Official ICML 2025 form; numerical rank audit passed
+H84,12,H84,legacy_gate,failed,ClaFR-alpha0.9,,,,,,,0.346248,,,Paper Algorithm 1; 775-dimensional classifier subspace
+H91,13,H91,legacy_gate,failed,PatchNegativeMutualInformation,,,,,,,0.525748,,,Best patch-family atom still failed ImageNet-O gate
+H96,13,H96,legacy_gate,failed,SaliencyRCMean,,,,,,,0.787353,,,Protocol-invalid ID-test selection diagnostic; failed regardless
+H104,14,H104,legacy_full,failed,ProxyEnvelopeMinimum,,,,0.504859,0.996918,0.125103,,-0.382778,0.562501,Proxy-passed envelope collapsed on all legacy shifts
+H105,14,H105,legacy_full,failed,ProxyEnvelopeHarmonic,,,,0.476722,0.995614,0.118269,,-0.410914,0.561197,Proxy-passed envelope collapsed on all legacy shifts
+H113,15,H113,legacy_full,failed,CopulaSupportQuadratic,,,,0.703655,0.848854,0.262277,,-0.183981,0.414437,Four-atom ID-proxy quadratic support
+H118,16,H118,legacy_gate,failed,ODINOfficial,,,,,,,0.510093,,,Fixed published temperature and perturbation
+H120,16,H120,legacy_gate,failed,NegativeInputGradientL1,,,,,,,0.633585,,,Best ODIN extraction atom; FPR95 0.9225
+H121,16,H121,legacy_gate,failed,RMDS,,,,,,,0.721833,,,Exact OpenOOD empirical-covariance score; numerical audit passed
+H122,16,H122,legacy_gate,failed,MultiCentroidRetry-k4,,,,,,,0.785538,,,Retry after proxy-transfer diagnosis; did not recover full KNN locality
+H123,18,H123,legacy_gate,failed,RobustSpatialMoments,,,,,,,0.537141,,,Class median/MAD log diagonal-Gram moments
+H124,18,H124,legacy_gate,failed,SpatialMomentEnvelope,,,,,,,0.469295,,,Best class-envelope spatial moment score
+H125,19,H125,legacy_full,failed,ConditionalKNNCalibration,,,,0.833768,0.644235,0.463905,0.781986,-0.053868,0.209818,Best conditional/global calibrated KNN variant
+H126,20,H126,legacy_full,failed,KNNAgreementGeometric,,,,0.870008,0.559745,0.540182,0.788418,-0.017628,0.125328,Exact top-200 support plus neighbor label agreement
+H127,21,H127,legacy_full,failed,JointRCKNNMinimum,,,,0.885911,0.470224,0.597182,0.801464,-0.001725,0.035807,Best two-score ID support was the unlearned lower envelope
+H128,21,H128,legacy_full,failed,ConditionalConformalRCKNN,,,,0.882905,0.464891,0.592716,0.795901,-0.004731,0.030474,Best symmetric conditional/marginal formula
+H129,22,H129,legacy_full,failed,DiagonalMetricKNNWithinZ,,,,0.842876,0.630928,0.468387,0.823774,-0.044760,0.196511,ImageNet-O gate passed but broad legacy shifts failed
+H129F,22,H129,legacy_full,failed,DiagonalMetricKNNFisher,,,,0.859079,0.599758,0.502719,0.821612,-0.028557,0.165341,Fisher metric variant
+H130,23,H130,legacy_full,failed,MultiViewKNNMeanFeature,,,,0.842621,0.630854,0.467487,0.830220,-0.045015,0.196437,Best ImageNet-O result in cycle; broad shifts failed
+H131,24,H131,legacy_gate,failed,ClassifierSpaceKNN,,,,,,,0.780819,,,Best fixed classifier-space embedding
+H132,25,H132,legacy_gate,failed,ClassResidualDirectionKNN,,,,,,,0.599557,,,Residual-direction support; raw class-restricted control 0.788095
+H133,26,H133,legacy_gate,failed,CorruptionResponseSupportFloor,,,,,,,0.804494,,,Blur/grayscale prototype response; below raw KNN gate
+H134,27,H134,legacy_gate,failed,ValidationHubnessCorrectedKNN,,,,,,,0.768519,,,Best hub geometric score; raw k200 remained 0.821822
+H135,27,H135,legacy_gate,failed,FullBankLocalDensityNormalization,,,,,,,0.592719,,,Best local-excess score; ratio variants were near chance
+H136,28,H136,legacy_gate,failed,IDFailMarginLogistic,,,,,,,0.543789,,,Selected by ID-only class-held-out error AUROC 0.908687; FPR95 0.972
+H137,29,H137,legacy_gate,failed,TailConsensusLowerTwoGeometric,,,,,,,0.798652,,,Selected on three locked ID-only proxies; FPR95 0.7025
+H141,87,H141,id_only_image_proxy,promoted,PULSE,,,,,,,,,,Patch-shuffle and center-CutMix both ranked above MSPS; frozen-method Spearman 0.9 Kendall 0.8
+H141,87,H141,legacy_full,success,PULSE,,,,0.9114263360092222,0.3999702361105249,0.626109045593972,0.8210932,0.0237900161954515,-0.0344464247527399,Four components; no learned weights; 71.7 MB fixed IVF-PQ index
+H142,93,H142,legacy_full,failed,CauchyMinSUL,,,,0.864316894,0.461560,0.511158,0.769096,,,Passed obsolete feature-space proxy; failed legacy and ImageNet-O
+H143,94,H143,legacy_full,failed,CauchyRawEnvelopeULK,,,,0.864921,0.454232,0.519413,0.767082,,,Passed obsolete feature-space proxy; failed legacy and ImageNet-O
+H144,95,H144,legacy_full,failed,CauchyQuantileEnvelopeULK,,,,0.886053,0.447671,0.598857,0.790674,,,Passed obsolete feature-space proxy; failed legacy and ImageNet-O
+H145,96,H145,proxy_infrastructure,completed,ImageSpaceProxyRepair,,,,,,,,,,Patch shuffle and center CutMix selected; phase mix rejected by negative rank fidelity
+H146,97,H146,untouched_final,success,PULSE,f43edfd5e1770c61ca2810dac167c0025fe24155e27fc630b8a096de42c6d977,,,0.723283953386804,0.7758016114082986,0.48662178621758545,,0.0360973400043393,-0.0427338069434271,NINCO and SSB-hard; both AUROC gains positive; all 2000-draw paired macro CIs exclude zero
