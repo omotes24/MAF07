@@ -1,11 +1,12 @@
 # MAF07
 
-MAF07 is an 8-class wild-cat closed classification and OOD detection experiment.
-The main proposed OOD method in this repository is **RSN: Robust
-Scale-Normalized kNN**.
+The primary OOD method in this repository is **PULSE**, a four-component,
+strict-fair-inductive score for a frozen ResNet50d. The historical 8-class
+wild-cat RSN experiments remain available as a separate secondary track.
 
-The repository also contains the separate fixed-ResNet50d strict-fair-inductive
-track, **PULSE**, under
+## Primary method: PULSE
+
+PULSE is implemented under
 [`experiments/strict_imagenet_o/autonomous_sota/`](experiments/strict_imagenet_o/autonomous_sota/).
 PULSE was selected without target-OOD access and then evaluated once on the
 preregistered untouched NINCO and SSB-hard suite. It improves over the
@@ -21,6 +22,22 @@ The complete lock, implementation, raw scores, 2,000-draw paired bootstrap,
 and integrity audit are linked from the PULSE
 [`README`](experiments/strict_imagenet_o/autonomous_sota/README.md) and final
 [`RESULTS`](experiments/strict_imagenet_o/autonomous_sota/final_results/pulse_locked/RESULTS.md).
+The full method definition, code map, ablations, efficiency measurements, and
+limitations are documented in [docs/PULSE.md](docs/PULSE.md).
+
+The archived one-shot locked command is:
+
+```bash
+cd experiments/strict_imagenet_o/autonomous_sota
+python run_final_locked.py --locked-config configs/final_locked_config.json
+```
+
+The runner verifies every code and artifact hash and intentionally refuses to
+overwrite the archived final result.
+
+## Secondary track: RSN wild-cat benchmark
+
+The RSN track is an 8-class wild-cat closed-classification and OOD experiment.
 
 RSN is the promoted name for the legacy experiment label
 `diagcard_huber_raw`. It applies class-conditional diagonal feature scaling,
@@ -56,10 +73,10 @@ The image dataset itself is not committed to this Git repository. Keep the
 images on Hades, or materialize the same directory layout locally and update
 `configs/dataset.yaml`.
 
-## Result audit status
+## RSN result audit status
 
 The July 2026 audit found that the archived full-ranking table used several
-incorrect or proxy baseline implementations. The corrected paper and primary
+incorrect or proxy baseline implementations. The corrected paper and RSN
 implementation now agree on raw features, `k=150`, all ID classes, Huber
 `delta=1.345`, and no empirical calibration.
 
@@ -75,7 +92,7 @@ coverage report and aggregated rankings are in
 More details are in [docs/RSN.md](docs/RSN.md) and
 [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md).
 
-## Reproduction
+## RSN reproduction
 
 ```bash
 cd MAF07
